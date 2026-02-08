@@ -2,18 +2,19 @@
 
 Scripts to install and update CartScout on Ubuntu 22.04, pulling from Git and running the API with pm2.
 
-## Install (first time)
+## Install (first time, fresh server)
 
-1. Set your Git repo and install directory (or edit inside the script):
+1. **Set your Git repo URL** (required). Use your real repo; the script will clone it.
    ```bash
    export GIT_REPO="https://github.com/YOUR_ORG/CartScout.git"
-   export INSTALL_DIR="/opt/cartscout"
    ```
+   Optional: `export INSTALL_DIR="/opt/cartscout"` and/or `export BRANCH="main"`
 
-2. Run the install script (requires sudo):
+2. Run the install script. Use `-E` so `GIT_REPO` is passed through sudo:
    ```bash
-   sudo bash scripts/ubuntu-install.sh
+   sudo -E bash scripts/ubuntu-install.sh
    ```
+   The script will: install Node 20, clone the repo into `INSTALL_DIR`, run `npm ci`, build the server, and start it with pm2.
 
 3. Edit `.env` in the install directory (JWT secrets, `PORT`, `DATABASE_PATH`).
 

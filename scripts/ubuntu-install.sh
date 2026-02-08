@@ -5,13 +5,20 @@
 
 set -e
 
-# --- Config (change or export before running) ---
-GIT_REPO="${GIT_REPO:-https://github.com/YOUR_ORG/CartScout.git}"
+# --- Config (set GIT_REPO before running on a fresh install) ---
+GIT_REPO="${GIT_REPO:-}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/cartscout}"
 BRANCH="${BRANCH:-main}"
 APP_USER="${APP_USER:-cartscout}"
 
-echo "[CartScout] Installing on Ubuntu 22.04..."
+if [[ -z "$GIT_REPO" ]]; then
+  echo "[CartScout] ERROR: Set your Git repo URL before running."
+  echo "  export GIT_REPO=\"https://github.com/YOUR_ORG/CartScout.git\""
+  echo "  sudo -E $0"
+  exit 1
+fi
+
+echo "[CartScout] Installing on Ubuntu 22.04 (clone from $GIT_REPO)..."
 
 # --- Node 20 (NodeSource) ---
 if ! command -v node &>/dev/null || [[ $(node -v | cut -d. -f1 | tr -d v) -lt 18 ]]; then
