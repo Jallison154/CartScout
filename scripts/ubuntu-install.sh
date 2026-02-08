@@ -48,6 +48,9 @@ echo "[CartScout] Installing on Ubuntu 22.04 (clone from $GIT_REPO)..."
 NODE_MAJOR=$(node -v 2>/dev/null | sed -n 's/^v\([0-9]*\).*/\1/p')
 if ! command -v node &>/dev/null || [[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 18 ]]; then
   echo "[CartScout] Installing Node.js 20 (current: $(node -v 2>/dev/null || echo 'none'))..."
+  # Remove Ubuntu's nodejs/libnode-dev so NodeSource can install without conflicts
+  apt-get remove -y nodejs libnode-dev 2>/dev/null || true
+  apt-get autoremove -y 2>/dev/null || true
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
   apt-get install -y nodejs
 fi

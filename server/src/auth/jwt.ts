@@ -2,18 +2,22 @@
  * JWT issue and verify for access and refresh tokens.
  * Tokens are returned in JSON body for mobile clients (not cookies).
  */
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { config } from "../config.js";
 import type { JwtPayload } from "../types/index.js";
 
 const { accessSecret, refreshSecret, accessExpiresIn, refreshExpiresIn } = config.jwt;
 
+// Cast: config strings like "15m" / "7d" are valid for jsonwebtoken; types expect StringValue
+const accessSignOptions = { expiresIn: accessExpiresIn } as SignOptions;
+const refreshSignOptions = { expiresIn: refreshExpiresIn } as SignOptions;
+
 export function signAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, accessSecret, { expiresIn: accessExpiresIn });
+  return jwt.sign(payload, accessSecret, accessSignOptions);
 }
 
 export function signRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, refreshSecret, { expiresIn: refreshExpiresIn });
+  return jwt.sign(payload, refreshSecret, refreshSignOptions);
 }
 
 export function verifyAccessToken(token: string): JwtPayload {

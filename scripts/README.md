@@ -72,9 +72,16 @@ CartScout needs **Node 18 or newer** (project and many deps require it). The **f
 - **Fix:** Run the **full install** once so Node 20 is installed:  
   `sudo bash scripts/ubuntu-install.sh`  
   (Do not use only `pull` on a fresh server.)
-- **Or** install Node 20 yourself, then run install or pull:  
-  `curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -` then  
-  `sudo apt-get install -y nodejs`
+
+- **If NodeSource install fails** with `trying to overwrite ... which is also in package libnode-dev`: Ubuntu’s Node packages conflict. Remove them, then install Node 20:
+  ```bash
+  sudo apt-get remove -y nodejs libnode-dev
+  sudo apt-get autoremove -y
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  node -v   # should show v20.x
+  ```
+  Then run `sudo bash scripts/ubuntu-install.sh` or `sudo bash scripts/ubuntu-install.sh pull`.
 
 ## Notes
 
