@@ -1,7 +1,12 @@
 #!/bin/bash
-# CartScout – full install or pull+restart on Ubuntu 22.04.
-#   sudo ./scripts/ubuntu-install.sh        # full install (clone, deps, build, pm2)
-#   sudo ./scripts/ubuntu-install.sh pull   # pull latest, npm ci, build, pm2 restart
+# CartScout – single-command full install or pull+restart on Ubuntu 22.04.
+#
+# Full install (one command, no extra steps):
+#   sudo bash scripts/ubuntu-install.sh
+# Installs: curl, Node.js 20, build-essential, python3, git, pm2; clones repo,
+# runs npm ci, builds server, creates .env + data dir, starts API with pm2.
+#
+# Update: sudo bash scripts/ubuntu-install.sh pull
 
 set -e
 
@@ -42,26 +47,31 @@ if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
   exit 0
 fi
 
-echo "[CartScout] Installing on Ubuntu 22.04 (clone from $GIT_REPO)..."
+echo "[CartScout] Full install on Ubuntu 22.04 (clone from $GIT_REPO)..."
+
+# --- System deps (one-time): curl, build-essential, python3, git ---
+echo "[CartScout] Installing system packages (curl, build-essential, python3, git)..."
+apt-get update -qq
+apt-get install -y -qq curl build-essential python3 git
 
 # --- Node 20 (NodeSource); required for CartScout ---
 NODE_MAJOR=$(node -v 2>/dev/null | sed -n 's/^v\([0-9]*\).*/\1/p')
 if ! command -v node &>/dev/null || [[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 18 ]]; then
   echo "[CartScout] Installing Node.js 20 (current: $(node -v 2>/dev/null || echo 'none'))..."
-  # Remove Ubuntu's nodejs/libnode-dev so NodeSource can install without conflicts
   apt-get remove -y nodejs libnode-dev 2>/dev/null || true
   apt-get autoremove -y 2>/dev/null || true
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
   apt-get install -y nodejs
 fi
-# Ensure node/npm from this install are first in PATH for later steps
-export PATH="/usr/bin:$PATH"
+# PATH: node, npm, and global bins (pm2)
+export PATH="/usr/local/bin:/usr/bin:$PATH"
 echo "[CartScout] Node $(node -v) npm $(npm -v)"
 
-# --- Build deps for better-sqlite3 ---
-echo "[CartScout] Ensuring build-essential..."
-apt-get update -qq
-apt-get install -y -qq build-essential python3 git
+# --- pm2 (global); needed to run and restart the API ---
+if ! command -v pm2 &>/dev/null; then
+  echo "[CartScout] Installing pm2..."
+  npm install -g pm2
+fi
 
 # --- App user (optional) ---
 if ! id "$APP_USER" &>/dev/null; then
@@ -98,12 +108,7 @@ fi
 mkdir -p "$INSTALL_DIR/server/data"
 chown "$APP_USER:$APP_USER" "$INSTALL_DIR/server/data"
 
-# --- Pm2 (global) and start ---
-if ! command -v pm2 &>/dev/null; then
-  echo "[CartScout] Installing pm2..."
-  npm install -g pm2
-fi
-
+# --- Start API with pm2 ---
 cd "$INSTALL_DIR"
 sudo -u "$APP_USER" env PATH="$PATH" pm2 delete cartscout-api 2>/dev/null || true
 sudo -u "$APP_USER" env PATH="$PATH" NODE_ENV=production pm2 start npm --name cartscout-api -- run start --workspace=server

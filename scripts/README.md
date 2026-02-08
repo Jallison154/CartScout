@@ -1,9 +1,23 @@
 # Ubuntu 22.04 deploy scripts
 
-Scripts to install and update CartScout on Ubuntu 22.04, pulling from Git and running the API with pm2.
+One-command install and update for CartScout on Ubuntu 22.04.
 
-- **Full install:** `sudo bash scripts/ubuntu-install.sh`
+- **Full install (single command):** `sudo bash scripts/ubuntu-install.sh`
 - **Pull and restart:** `sudo bash scripts/ubuntu-install.sh pull`
+
+### What the full install installs (no extra steps)
+
+| Add-on | Purpose |
+|--------|--------|
+| `curl` | Fetch NodeSource setup script |
+| **Node.js 20** | Runtime (removes conflicting Ubuntu nodejs/libnode-dev first) |
+| `build-essential`, `python3`, `git` | Build native deps (e.g. better-sqlite3), clone repo |
+| **pm2** | Process manager to run and restart the API |
+| App user `cartscout` | Runs the app under `/opt/cartscout` |
+| `.env` from `.env.example` | Created if missing; edit for JWT secrets |
+| `server/data` | SQLite data directory |
+
+Then: clone repo → `npm ci` → build server → start API with pm2.
 
 ## No code on the server yet (clone from Git first)
 
