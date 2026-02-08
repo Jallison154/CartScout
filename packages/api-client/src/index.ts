@@ -73,8 +73,8 @@ export class ApiClient {
     return this.request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
   }
 
-  async delete(path: string): Promise<void> {
-    await this.request(path, { method: "DELETE" });
+  async delete<T = void>(path: string): Promise<ApiResponse<T>> {
+    return this.request<T>(path, { method: "DELETE" });
   }
 
   /** Auth: login. Returns { data: { user, accessToken, refreshToken, expiresIn } } */
@@ -157,5 +157,30 @@ export class ApiClient {
   /** DELETE /api/v1/lists/:id/items/:itemId */
   deleteListItem(listId: string, itemId: string) {
     return this.delete(`/api/v1/lists/${listId}/items/${itemId}`);
+  }
+
+  /** GET /api/v1/stores - list all stores */
+  stores() {
+    return this.get<import("@cartscout/types").Store[]>("/api/v1/stores");
+  }
+
+  /** GET /api/v1/stores/favorites - list user's selected store ids */
+  storeFavorites() {
+    return this.get<string[]>("/api/v1/stores/favorites");
+  }
+
+  /** POST /api/v1/stores/favorites - add store to favorites */
+  addStoreFavorite(storeId: string) {
+    return this.post<string[]>("/api/v1/stores/favorites", { store_id: storeId });
+  }
+
+  /** DELETE /api/v1/stores/favorites/:storeId - returns updated list of favorite store ids */
+  removeStoreFavorite(storeId: string) {
+    return this.delete<string[]>(`/api/v1/stores/favorites/${storeId}`);
+  }
+
+  /** GET /api/v1/products/search?q= - product suggestions */
+  searchProducts(q: string, limit = 15) {
+    return this.get<import("@cartscout/types").CanonicalProduct[]>("/api/v1/products/search", { q, limit: String(limit) });
   }
 }

@@ -43,7 +43,7 @@ export default function ListsScreen() {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<Text style={styles.empty}>No lists yet. Tap "+ New list" to create one.</Text>}
         renderItem={({ item }) => (
-          <Pressable style={styles.row}>
+          <Pressable style={styles.row} onPress={() => router.push(`/list/${item.id}`)}>
             <Text style={styles.listName}>{item.name}</Text>
             <Text style={styles.listMeta}>{item.list_type} · {item.updated_at?.slice(0, 10)}</Text>
           </Pressable>

@@ -20,6 +20,8 @@ One-command install and update for CartScout on Ubuntu 22.04.
 
 Then: clone repo → `npm install` (uses package.json overrides, e.g. glob) → build server → start API with pm2.
 
+**Stores and product suggestions:** The API exposes `/api/v1/stores` and `/api/v1/products/search` only when the server is built from code that includes these routes. If the app gets 404s for stores or favorites, run an update on the server so the latest code is built and restarted: `sudo bash scripts/ubuntu-install.sh pull`.
+
 ## No code on the server yet (clone from Git first)
 
 If the server has no CartScout files yet, clone the repo so you have the install script, then run it:

@@ -49,6 +49,15 @@ CREATE TABLE IF NOT EXISTS canonical_products (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_canonical_products_external_id ON canonical_products(source, external_id);
+CREATE INDEX IF NOT EXISTS idx_canonical_products_display_name ON canonical_products(display_name);
+
+-- Seed example products (for add-item suggestions; more come from retailer adapters later)
+INSERT OR IGNORE INTO canonical_products (id, display_name, brand, source, external_id) VALUES
+  ('prod-milk-1', 'Whole Milk 1 Gallon', 'Generic', 'seed', 'milk-1'),
+  ('prod-bread-1', 'White Bread', 'Generic', 'seed', 'bread-1'),
+  ('prod-eggs-1', 'Large Eggs 12ct', 'Generic', 'seed', 'eggs-1'),
+  ('prod-banana-1', 'Bananas', 'Generic', 'seed', 'banana-1'),
+  ('prod-apple-1', 'Gala Apples', 'Generic', 'seed', 'apple-1');
 
 -- List items (canonical_product_id or free_text for suggestions)
 CREATE TABLE IF NOT EXISTS list_items (
@@ -100,6 +109,14 @@ CREATE TABLE IF NOT EXISTS user_favorite_stores (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE(user_id, store_id)
 );
+
+-- Seed a few example stores (user can select which to use per list later)
+INSERT OR IGNORE INTO stores (id, external_id, name, chain, source) VALUES
+  ('store-kroger-1', 'kroger-1', 'Kroger', 'Kroger', 'kroger'),
+  ('store-walmart-1', 'walmart-1', 'Walmart', 'Walmart', 'walmart'),
+  ('store-target-1', 'target-1', 'Target', 'Target', 'target'),
+  ('store-wholefoods-1', 'wholefoods-1', 'Whole Foods', 'Whole Foods', 'wholefoods'),
+  ('store-publix-1', 'publix-1', 'Publix', 'Publix', 'publix');
 
 -- Push notification device tokens (for list reminders, price updates)
 CREATE TABLE IF NOT EXISTS push_tokens (

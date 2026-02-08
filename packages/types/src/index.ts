@@ -47,3 +47,26 @@ export interface ApiResponse<T> {
 export interface ApiErrorBody {
   error: { code: string; message: string };
 }
+
+export interface Store {
+  id: string;
+  external_id: string;
+  name: string;
+  address_line?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+  chain?: string | null;
+  source: string;
+}
+
+export interface CanonicalProduct {
+  id: string;
+  display_name: string;
+  brand?: string | null;
+  category?: string | null;
+  size_description?: string | null;
+  sold_by?: string;
+  image_url?: string | null;
+  source: string;
+}
