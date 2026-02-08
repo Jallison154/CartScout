@@ -1,0 +1,35 @@
+/**
+ * CartScout API server. API-first for web and mobile (iOS/Android).
+ * Base path: /api/v1. Auth: Bearer token (accessToken); refresh via POST /api/v1/auth/refresh.
+ */
+import express from "express";
+import cors from "cors";
+import { initDb } from "./db/client.js";
+import { sendError } from "./middleware/response.js";
+import routes from "./routes/index.js";
+import { config } from "./config.js";
+
+initDb();
+
+const app = express();
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json());
+
+app.use("/api/v1", routes);
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", version: "0.1.0" });
+});
+
+app.use((_req, res) => {
+  sendError(res, "NOT_FOUND", "Not found", 404);
+});
+
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(err);
+  sendError(res, "INTERNAL_ERROR", "An unexpected error occurred", 500);
+});
+
+app.listen(config.port, () => {
+  console.log(`CartScout API listening on http://localhost:${config.port} (api: /api/v1)`);
+});
