@@ -17,7 +17,7 @@ One-command install and update for CartScout on Ubuntu 22.04.
 | `.env` from `.env.example` | Created if missing; edit for JWT secrets |
 | `server/data` | SQLite data directory |
 
-Then: clone repo → `npm ci` → build server → start API with pm2.
+Then: clone repo → `npm install` (uses package.json overrides, e.g. glob) → build server → start API with pm2.
 
 ## No code on the server yet (clone from Git first)
 
@@ -37,7 +37,7 @@ The install script will then clone the repo again into `/opt/cartscout`, install
    ```bash
    sudo bash scripts/ubuntu-install.sh
    ```
-   The script will: install Node 20, clone the repo into `/opt/cartscout`, run `npm ci`, build the server, and start it with pm2.
+   The script will: install Node 20, clone the repo into `/opt/cartscout`, run `npm install`, build the server, and start it with pm2.
 
 2. To use a different repo or path, set env vars first (use `-E` with sudo so they are passed through):
    ```bash
@@ -68,7 +68,7 @@ Or the dedicated update script:
 sudo bash scripts/ubuntu-update.sh
 ```
 
-Both do: `git pull`, `npm ci`, `npm run build:server`, `pm2 restart cartscout-api`.
+Both do: `git pull`, `npm install`, `npm run build:server`, `pm2 restart cartscout-api`.
 
 ## Env vars (optional)
 
@@ -81,7 +81,7 @@ Both do: `git pull`, `npm ci`, `npm run build:server`, `pm2 restart cartscout-ap
 
 ## Node 18+ required
 
-CartScout needs **Node 18 or newer** (project and many deps require it). The **full install** script installs Node 20 via NodeSource. If you see `EBADENGINE` or `SyntaxError: Unexpected token '?'` during `npm ci` or `npm run build:server`, the process is using an old Node (e.g. 12).
+CartScout needs **Node 18 or newer** (project and many deps require it). The **full install** script installs Node 20 via NodeSource. If you see `EBADENGINE` or `SyntaxError: Unexpected token '?'` during `npm install` or `npm run build:server`, the process is using an old Node (e.g. 12).
 
 - **Fix:** Run the **full install** once so Node 20 is installed:  
   `sudo bash scripts/ubuntu-install.sh`  
@@ -99,7 +99,7 @@ CartScout needs **Node 18 or newer** (project and many deps require it). The **f
 
 ## Notes
 
-- Install script: Node 20, build-essential, clone, `npm ci`, `npm run build:server`, pm2.
-- Update script: `git pull`, `npm ci`, build, `pm2 restart cartscout-api`.
+- Install script: Node 20, build-essential, clone, `npm install`, `npm run build:server`, pm2.
+- Update script: `git pull`, `npm install`, build, `pm2 restart cartscout-api`.
 - SQLite data dir: `server/data/` (create and chown in install).
 - Health: `curl http://localhost:4000/health`

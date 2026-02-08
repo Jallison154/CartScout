@@ -4,7 +4,7 @@
 # Full install (one command, no extra steps):
 #   sudo bash scripts/ubuntu-install.sh
 # Installs: curl, Node.js 20, build-essential, python3, git, pm2; clones repo,
-# runs npm ci, builds server, creates .env + data dir, starts API with pm2.
+# runs npm install (respects package.json overrides, e.g. glob), builds server, starts API with pm2.
 #
 # Update: sudo bash scripts/ubuntu-install.sh pull
 
@@ -16,7 +16,7 @@ INSTALL_DIR="${INSTALL_DIR:-/opt/cartscout}"
 BRANCH="${BRANCH:-main}"
 APP_USER="${APP_USER:-cartscout}"
 
-# --- Pull-only mode: pull, npm ci, build, pm2 restart ---
+# --- Pull-only mode: pull, npm install, build, pm2 restart ---
 if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
   echo "[CartScout] Pull and restart..."
   if [[ ! -d "$INSTALL_DIR/.git" ]]; then
@@ -35,8 +35,8 @@ if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
   sudo -u "$APP_USER" env PATH="$PATH" git fetch origin
   sudo -u "$APP_USER" env PATH="$PATH" git checkout "$BRANCH"
   sudo -u "$APP_USER" env PATH="$PATH" git pull
-  echo "[CartScout] npm ci and build..."
-  sudo -u "$APP_USER" env PATH="$PATH" npm ci
+  echo "[CartScout] npm install and build..."
+  sudo -u "$APP_USER" env PATH="$PATH" npm install
   sudo -u "$APP_USER" env PATH="$PATH" npm run build:server
   if command -v pm2 &>/dev/null; then
     sudo -u "$APP_USER" env PATH="$PATH" pm2 restart cartscout-api
@@ -90,10 +90,10 @@ else
   sudo -u "$APP_USER" git clone --branch "$BRANCH" "$GIT_REPO" "$INSTALL_DIR"
 fi
 
-# --- Install deps and build server (use root PATH so Node 20 is used) ---
+# --- Install deps and build server (npm install respects package.json overrides, e.g. glob) ---
 echo "[CartScout] npm install and build..."
 cd "$INSTALL_DIR"
-sudo -u "$APP_USER" env PATH="$PATH" npm ci
+sudo -u "$APP_USER" env PATH="$PATH" npm install
 sudo -u "$APP_USER" env PATH="$PATH" npm run build:server
 
 # --- .env ---
