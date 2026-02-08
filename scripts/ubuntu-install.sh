@@ -1,21 +1,37 @@
 #!/bin/bash
-# CartScout – full install on Ubuntu 22.04 (Node 20, clone, deps, build, pm2).
-# Usage: sudo ./scripts/ubuntu-install.sh
-# Set GIT_REPO and INSTALL_DIR before running, or edit below.
+# CartScout – full install or pull+restart on Ubuntu 22.04.
+#   sudo ./scripts/ubuntu-install.sh        # full install (clone, deps, build, pm2)
+#   sudo ./scripts/ubuntu-install.sh pull   # pull latest, npm ci, build, pm2 restart
 
 set -e
 
-# --- Config (set GIT_REPO before running on a fresh install) ---
-GIT_REPO="${GIT_REPO:-}"
+# --- Config (override with env vars if needed) ---
+GIT_REPO="${GIT_REPO:-https://github.com/Jallison154/CartScout.git}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/cartscout}"
 BRANCH="${BRANCH:-main}"
 APP_USER="${APP_USER:-cartscout}"
 
-if [[ -z "$GIT_REPO" ]]; then
-  echo "[CartScout] ERROR: Set your Git repo URL before running."
-  echo "  export GIT_REPO=\"https://github.com/YOUR_ORG/CartScout.git\""
-  echo "  sudo -E $0"
-  exit 1
+# --- Pull-only mode: pull, npm ci, build, pm2 restart ---
+if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
+  echo "[CartScout] Pull and restart..."
+  if [[ ! -d "$INSTALL_DIR/.git" ]]; then
+    echo "[CartScout] Not a git repo. Run without 'pull' for full install first."
+    exit 1
+  fi
+  cd "$INSTALL_DIR"
+  sudo -u "$APP_USER" git fetch origin
+  sudo -u "$APP_USER" git checkout "$BRANCH"
+  sudo -u "$APP_USER" git pull
+  echo "[CartScout] npm ci and build..."
+  sudo -u "$APP_USER" npm ci
+  sudo -u "$APP_USER" npm run build:server
+  if command -v pm2 &>/dev/null; then
+    sudo -u "$APP_USER" pm2 restart cartscout-api
+    sudo -u "$APP_USER" pm2 save
+    echo "[CartScout] Restarted cartscout-api."
+  fi
+  echo "[CartScout] Pull done."
+  exit 0
 fi
 
 echo "[CartScout] Installing on Ubuntu 22.04 (clone from $GIT_REPO)..."

@@ -2,19 +2,23 @@
 
 Scripts to install and update CartScout on Ubuntu 22.04, pulling from Git and running the API with pm2.
 
+- **Full install:** `sudo bash scripts/ubuntu-install.sh`
+- **Pull and restart:** `sudo bash scripts/ubuntu-install.sh pull`
+
 ## Install (first time, fresh server)
 
-1. **Set your Git repo URL** (required). Use your real repo; the script will clone it.
+1. Clone and install (defaults to [Jallison154/CartScout](https://github.com/Jallison154/CartScout)):
    ```bash
-   export GIT_REPO="https://github.com/YOUR_ORG/CartScout.git"
+   sudo bash scripts/ubuntu-install.sh
    ```
-   Optional: `export INSTALL_DIR="/opt/cartscout"` and/or `export BRANCH="main"`
+   The script will: install Node 20, clone the repo into `/opt/cartscout`, run `npm ci`, build the server, and start it with pm2.
 
-2. Run the install script. Use `-E` so `GIT_REPO` is passed through sudo:
+2. To use a different repo or path, set env vars first (use `-E` with sudo so they are passed through):
    ```bash
+   export GIT_REPO="https://github.com/Jallison154/CartScout.git"
+   export INSTALL_DIR="/opt/cartscout"
    sudo -E bash scripts/ubuntu-install.sh
    ```
-   The script will: install Node 20, clone the repo into `INSTALL_DIR`, run `npm ci`, build the server, and start it with pm2.
 
 3. Edit `.env` in the install directory (JWT secrets, `PORT`, `DATABASE_PATH`).
 
@@ -24,29 +28,30 @@ Scripts to install and update CartScout on Ubuntu 22.04, pulling from Git and ru
    # run the command it prints
    ```
 
-## Update (after git push)
+## Update (pull latest and restart)
 
-From the server, run:
+From the server, either use the install script with `pull`:
+
+```bash
+sudo bash scripts/ubuntu-install.sh pull
+```
+
+Or the dedicated update script:
 
 ```bash
 sudo bash scripts/ubuntu-update.sh
 ```
 
-Or if you set `INSTALL_DIR`:
-
-```bash
-export INSTALL_DIR=/opt/cartscout
-sudo bash scripts/ubuntu-update.sh
-```
+Both do: `git pull`, `npm ci`, `npm run build:server`, `pm2 restart cartscout-api`.
 
 ## Env vars (optional)
 
-| Variable      | Default           | Description                    |
-|---------------|-------------------|--------------------------------|
-| `GIT_REPO`    | (see script)      | Git clone URL                  |
-| `INSTALL_DIR` | `/opt/cartscout`  | Install path                   |
-| `BRANCH`      | `main`            | Branch to clone / pull         |
-| `APP_USER`    | `cartscout`       | User that runs the app         |
+| Variable      | Default                                      | Description           |
+|---------------|----------------------------------------------|-----------------------|
+| `GIT_REPO`    | `https://github.com/Jallison154/CartScout.git` | Git clone URL         |
+| `INSTALL_DIR` | `/opt/cartscout`                             | Install path          |
+| `BRANCH`      | `main`                                       | Branch to clone/pull  |
+| `APP_USER`    | `cartscout`                                  | User that runs the app |
 
 ## Notes
 
