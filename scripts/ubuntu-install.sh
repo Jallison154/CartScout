@@ -34,8 +34,8 @@ if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
   fi
   cd "$INSTALL_DIR"
   sudo -u "$APP_USER" env PATH="$PATH" git fetch origin
+  sudo -u "$APP_USER" env PATH="$PATH" git reset --hard "origin/$BRANCH"
   sudo -u "$APP_USER" env PATH="$PATH" git checkout "$BRANCH"
-  sudo -u "$APP_USER" env PATH="$PATH" git pull
   echo "[CartScout] npm install and build..."
   sudo -u "$APP_USER" env PATH="$PATH" npm install
   sudo -u "$APP_USER" env PATH="$PATH" npm run build:server
@@ -97,8 +97,8 @@ chown -R "$APP_USER:$APP_USER" "$INSTALL_DIR" 2>/dev/null || true
 
 # --- Clone or pull ---
 if [[ -d "$INSTALL_DIR/.git" ]]; then
-  echo "[CartScout] Already cloned; pulling..."
-  (cd "$INSTALL_DIR" && sudo -u "$APP_USER" git fetch && git checkout "$BRANCH" && git pull)
+  echo "[CartScout] Already cloned; updating to latest..."
+  (cd "$INSTALL_DIR" && sudo -u "$APP_USER" env PATH="$PATH" git fetch origin && sudo -u "$APP_USER" env PATH="$PATH" git reset --hard "origin/$BRANCH" && sudo -u "$APP_USER" env PATH="$PATH" git checkout "$BRANCH")
 else
   echo "[CartScout] Cloning $GIT_REPO..."
   sudo -u "$APP_USER" git clone --branch "$BRANCH" "$GIT_REPO" "$INSTALL_DIR"
