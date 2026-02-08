@@ -15,6 +15,9 @@ Grocery list app built for **iPhone and Android** (Expo/React Native) with an AP
    ```bash
    npm install
    ```
+   **If `npm install` fails** (e.g. `better-sqlite3` build error because the project path contains spaces or parentheses): run `npm install --ignore-scripts` so other deps install, then either:
+   - **Option A:** Move or clone the project to a path without spaces or parentheses (e.g. `~/CartScout`), run `npm install` there, then `npm run server`; or  
+   - **Option B:** From the project root, run `npm run server` after `npm install --ignore-scripts` — the API will still fail to start until `better-sqlite3` is built (move the project and run `npm install` once to fix).
 
 2. **Environment** (optional for local dev): Copy `.env.example` to `.env` and set `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` if you want. The server will run with defaults otherwise.
 

@@ -4,7 +4,7 @@
  */
 import jwt from "jsonwebtoken";
 import { config } from "../config.js";
-import type { JwtPayload } from "../types.js";
+import type { JwtPayload } from "../types/index.js";
 
 const { accessSecret, refreshSecret, accessExpiresIn, refreshExpiresIn } = config.jwt;
 

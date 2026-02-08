@@ -3,7 +3,7 @@
  * Success: { data, meta? }. Error: { error: { code, message } }.
  */
 import type { Request, Response, NextFunction } from "express";
-import type { ApiError, ApiSuccess } from "../types.js";
+import type { ApiError, ApiSuccess } from "../types/index.js";
 
 export function sendSuccess<T>(res: Response, data: T, meta?: ApiSuccess["meta"]): void {
   const body: { data: T; meta?: typeof meta } = { data };

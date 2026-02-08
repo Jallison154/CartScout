@@ -9,7 +9,7 @@ import db from "../db/client.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken, getAccessTokenExpirySeconds } from "../auth/jwt.js";
 import { requireAuth, type AuthRequest } from "../middleware/auth.js";
 import { sendSuccess, sendError, asyncHandler } from "../middleware/response.js";
-import type { AuthTokens } from "../types.js";
+import type { AuthTokens } from "../types/index.js";
 import crypto from "crypto";
 
 const router = Router();
