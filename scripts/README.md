@@ -65,6 +65,17 @@ Both do: `git pull`, `npm ci`, `npm run build:server`, `pm2 restart cartscout-ap
 | `BRANCH`      | `main`                                       | Branch to clone/pull  |
 | `APP_USER`    | `cartscout`                                  | User that runs the app |
 
+## Node 18+ required
+
+CartScout needs **Node 18 or newer** (project and many deps require it). The **full install** script installs Node 20 via NodeSource. If you see `EBADENGINE` or `SyntaxError: Unexpected token '?'` during `npm ci` or `npm run build:server`, the process is using an old Node (e.g. 12).
+
+- **Fix:** Run the **full install** once so Node 20 is installed:  
+  `sudo bash scripts/ubuntu-install.sh`  
+  (Do not use only `pull` on a fresh server.)
+- **Or** install Node 20 yourself, then run install or pull:  
+  `curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -` then  
+  `sudo apt-get install -y nodejs`
+
 ## Notes
 
 - Install script: Node 20, build-essential, clone, `npm ci`, `npm run build:server`, pm2.

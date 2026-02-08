@@ -18,16 +18,24 @@ if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
     echo "[CartScout] Not a git repo. Run without 'pull' for full install first."
     exit 1
   fi
+  # Require Node 18+ (use same PATH as root so NodeSource node is used)
+  NODE_VER=$(node -v 2>/dev/null | cut -d. -f1 | tr -d v || echo "0")
+  if [[ -z "$NODE_VER" || "$NODE_VER" -lt 18 ]]; then
+    echo "[CartScout] ERROR: Node 18+ required (current: $(node -v 2>/dev/null || echo 'none'))."
+    echo "  Run full install first: sudo bash scripts/ubuntu-install.sh"
+    echo "  Or install Node 20: curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs"
+    exit 1
+  fi
   cd "$INSTALL_DIR"
-  sudo -u "$APP_USER" git fetch origin
-  sudo -u "$APP_USER" git checkout "$BRANCH"
-  sudo -u "$APP_USER" git pull
+  sudo -u "$APP_USER" env PATH="$PATH" git fetch origin
+  sudo -u "$APP_USER" env PATH="$PATH" git checkout "$BRANCH"
+  sudo -u "$APP_USER" env PATH="$PATH" git pull
   echo "[CartScout] npm ci and build..."
-  sudo -u "$APP_USER" npm ci
-  sudo -u "$APP_USER" npm run build:server
+  sudo -u "$APP_USER" env PATH="$PATH" npm ci
+  sudo -u "$APP_USER" env PATH="$PATH" npm run build:server
   if command -v pm2 &>/dev/null; then
-    sudo -u "$APP_USER" pm2 restart cartscout-api
-    sudo -u "$APP_USER" pm2 save
+    sudo -u "$APP_USER" env PATH="$PATH" pm2 restart cartscout-api
+    sudo -u "$APP_USER" env PATH="$PATH" pm2 save
     echo "[CartScout] Restarted cartscout-api."
   fi
   echo "[CartScout] Pull done."
@@ -36,12 +44,15 @@ fi
 
 echo "[CartScout] Installing on Ubuntu 22.04 (clone from $GIT_REPO)..."
 
-# --- Node 20 (NodeSource) ---
-if ! command -v node &>/dev/null || [[ $(node -v | cut -d. -f1 | tr -d v) -lt 18 ]]; then
-  echo "[CartScout] Installing Node.js 20..."
+# --- Node 20 (NodeSource); required for CartScout ---
+NODE_MAJOR=$(node -v 2>/dev/null | sed -n 's/^v\([0-9]*\).*/\1/p')
+if ! command -v node &>/dev/null || [[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 18 ]]; then
+  echo "[CartScout] Installing Node.js 20 (current: $(node -v 2>/dev/null || echo 'none'))..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
   apt-get install -y nodejs
 fi
+# Ensure node/npm from this install are first in PATH for later steps
+export PATH="/usr/bin:$PATH"
 echo "[CartScout] Node $(node -v) npm $(npm -v)"
 
 # --- Build deps for better-sqlite3 ---
@@ -66,11 +77,11 @@ else
   sudo -u "$APP_USER" git clone --branch "$BRANCH" "$GIT_REPO" "$INSTALL_DIR"
 fi
 
-# --- Install deps and build server ---
+# --- Install deps and build server (use root PATH so Node 20 is used) ---
 echo "[CartScout] npm install and build..."
 cd "$INSTALL_DIR"
-sudo -u "$APP_USER" npm ci
-sudo -u "$APP_USER" npm run build:server
+sudo -u "$APP_USER" env PATH="$PATH" npm ci
+sudo -u "$APP_USER" env PATH="$PATH" npm run build:server
 
 # --- .env ---
 if [[ ! -f "$INSTALL_DIR/.env" ]]; then
