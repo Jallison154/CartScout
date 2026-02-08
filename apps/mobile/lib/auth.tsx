@@ -10,7 +10,6 @@ const REFRESH_KEY = "cartscout_refresh_token";
 const EXPIRY_KEY = "cartscout_expires_in";
 
 const getBaseUrl = () => {
-  if (typeof window !== "undefined") return "http://localhost:4000";
   return process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 };
 
