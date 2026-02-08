@@ -1,9 +1,9 @@
 /**
- * Auth context: token in SecureStore for mobile. Refresh on 401.
+ * Auth context: token in SecureStore (native) or localStorage (web). Refresh on 401.
  */
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import * as SecureStore from "expo-secure-store";
 import { ApiClient } from "@cartscout/api-client";
+import * as storage from "./storage";
 
 const TOKEN_KEY = "cartscout_access_token";
 const REFRESH_KEY = "cartscout_refresh_token";
@@ -20,14 +20,14 @@ function getClient(): ApiClient {
   if (!apiClient) {
     apiClient = new ApiClient({
       baseUrl: getBaseUrl(),
-      getToken: async () => SecureStore.getItemAsync(TOKEN_KEY),
+      getToken: async () => storage.getItemAsync(TOKEN_KEY),
       setTokens: async (access, refresh, expiresIn) => {
-        await SecureStore.setItemAsync(TOKEN_KEY, access);
-        await SecureStore.setItemAsync(REFRESH_KEY, refresh);
-        await SecureStore.setItemAsync(EXPIRY_KEY, String(expiresIn));
+        await storage.setItemAsync(TOKEN_KEY, access);
+        await storage.setItemAsync(REFRESH_KEY, refresh);
+        await storage.setItemAsync(EXPIRY_KEY, String(expiresIn));
       },
       onUnauthorized: async () => {
-        const refresh = await SecureStore.getItemAsync(REFRESH_KEY);
+        const refresh = await storage.getItemAsync(REFRESH_KEY);
         if (refresh) {
           const out = await fetch(`${getBaseUrl()}/api/v1/auth/refresh`, {
             method: "POST",
@@ -36,8 +36,8 @@ function getClient(): ApiClient {
           });
           const json = await out.json();
           if (json.data?.accessToken) {
-            await SecureStore.setItemAsync(TOKEN_KEY, json.data.accessToken);
-            if (json.data.refreshToken) await SecureStore.setItemAsync(REFRESH_KEY, json.data.refreshToken);
+            await storage.setItemAsync(TOKEN_KEY, json.data.accessToken);
+            if (json.data.refreshToken) await storage.setItemAsync(REFRESH_KEY, json.data.refreshToken);
           }
         }
       },
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    SecureStore.getItemAsync(TOKEN_KEY).then((t) => {
+    storage.getItemAsync(TOKEN_KEY).then((t) => {
       setToken(t);
       setIsLoading(false);
     });
@@ -81,9 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_KEY);
-    await SecureStore.deleteItemAsync(EXPIRY_KEY);
+    await storage.deleteItemAsync(TOKEN_KEY);
+    await storage.deleteItemAsync(REFRESH_KEY);
+    await storage.deleteItemAsync(EXPIRY_KEY);
     setToken(null);
   }, []);
 
