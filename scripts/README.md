@@ -5,9 +5,21 @@ Scripts to install and update CartScout on Ubuntu 22.04, pulling from Git and ru
 - **Full install:** `sudo bash scripts/ubuntu-install.sh`
 - **Pull and restart:** `sudo bash scripts/ubuntu-install.sh pull`
 
+## No code on the server yet (clone from Git first)
+
+If the server has no CartScout files yet, clone the repo so you have the install script, then run it:
+
+```bash
+git clone https://github.com/Jallison154/CartScout.git
+cd CartScout
+sudo bash scripts/ubuntu-install.sh
+```
+
+The install script will then clone the repo again into `/opt/cartscout`, install Node 20, deps, build the server, and start it with pm2.
+
 ## Install (first time, fresh server)
 
-1. Clone and install (defaults to [Jallison154/CartScout](https://github.com/Jallison154/CartScout)):
+1. If you already have the repo (e.g. you ran the clone above), run:
    ```bash
    sudo bash scripts/ubuntu-install.sh
    ```
