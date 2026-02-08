@@ -7,6 +7,7 @@
 # runs npm install (respects package.json overrides, e.g. glob), builds server, starts API with pm2.
 #
 # Update: sudo bash scripts/ubuntu-install.sh pull
+# Reinstall (remove old + fresh install): sudo bash scripts/ubuntu-install.sh reinstall
 
 set -e
 
@@ -45,6 +46,19 @@ if [[ "${1:-}" == "pull" || "${1:-}" == "update" ]]; then
   fi
   echo "[CartScout] Pull done."
   exit 0
+fi
+
+# --- Reinstall mode: remove old install dir, then run full install below ---
+if [[ "${1:-}" == "reinstall" || "${1:-}" == "fresh" ]]; then
+  echo "[CartScout] Reinstall: removing old install at $INSTALL_DIR..."
+  if command -v pm2 &>/dev/null && id "$APP_USER" &>/dev/null; then
+    sudo -u "$APP_USER" env PATH="$PATH" pm2 delete cartscout-api 2>/dev/null || true
+    sudo -u "$APP_USER" pm2 save 2>/dev/null || true
+  fi
+  rm -rf "$INSTALL_DIR"
+  mkdir -p "$INSTALL_DIR"
+  id "$APP_USER" &>/dev/null && chown "$APP_USER:$APP_USER" "$INSTALL_DIR" || true
+  echo "[CartScout] Proceeding with full install..."
 fi
 
 echo "[CartScout] Full install on Ubuntu 22.04 (clone from $GIT_REPO)..."

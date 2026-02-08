@@ -4,6 +4,7 @@ One-command install and update for CartScout on Ubuntu 22.04.
 
 - **Full install (single command):** `sudo bash scripts/ubuntu-install.sh`
 - **Pull and restart:** `sudo bash scripts/ubuntu-install.sh pull`
+- **Reinstall (remove old + fresh install):** `sudo bash scripts/ubuntu-install.sh reinstall`
 
 ### What the full install installs (no extra steps)
 
