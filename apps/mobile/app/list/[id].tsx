@@ -27,6 +27,8 @@ export default function ListDetailScreen() {
   const {
     list,
     isLoading: loading,
+    isError,
+    error,
     refetch: loadList,
     addItem: addItemMutation,
     addItemPending: adding,
@@ -159,6 +161,20 @@ export default function ListDetailScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>{getApiErrorMessage(error)}</Text>
+        <Pressable style={styles.retryButton} onPress={() => loadList()}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+        <Pressable style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backBtnText}>Back</Text>
+        </Pressable>
       </View>
     );
   }
@@ -314,6 +330,9 @@ export default function ListDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  errorText: { color: "#666", textAlign: "center", paddingHorizontal: 24, marginBottom: 16 },
+  retryButton: { backgroundColor: "#0066cc", paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, marginBottom: 12 },
+  retryButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   header: { padding: 16, borderBottomWidth: 1, borderBottomColor: "#eee" },
   renamePressable: {},
   listName: { fontSize: 20, fontWeight: "700" },

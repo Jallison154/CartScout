@@ -11,8 +11,9 @@ export default function ListsScreen() {
     lists,
     isLoading,
     isError,
-    isOffline,
+    error,
     refetch,
+    isOffline,
     createList,
     createListPending,
     deleteList,
@@ -46,6 +47,17 @@ export default function ListsScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>{getApiErrorMessage(error)}</Text>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
       </View>
     );
   }
@@ -87,6 +99,9 @@ export default function ListsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  errorText: { color: "#666", textAlign: "center", paddingHorizontal: 24, marginBottom: 16 },
+  retryButton: { backgroundColor: "#0066cc", paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10 },
+  retryButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   offlineBanner: { backgroundColor: "#fff3cd", paddingVertical: 8, paddingHorizontal: 16, marginBottom: 12, borderRadius: 8 },
   offlineBannerText: { fontSize: 13, color: "#856404" },
   addButton: { backgroundColor: "#0066cc", padding: 14, borderRadius: 10, alignItems: "center", marginBottom: 16 },

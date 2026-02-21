@@ -10,6 +10,7 @@ import {
   addFavorite,
   removeFavorite,
 } from "../../services/stores.service.js";
+import { parseAddFavoriteBody } from "../../validators/stores.validator.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -38,8 +39,8 @@ router.post(
   "/favorites",
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
-    const { store_id } = req.body as { store_id?: string };
-    const ids = addFavorite(userId, store_id ?? "");
+    const body = parseAddFavoriteBody(req.body);
+    const ids = addFavorite(userId, body.store_id);
     res.status(201);
     sendSuccess(res, ids);
   })

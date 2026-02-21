@@ -24,6 +24,9 @@ export function initDb(): void {
   const inDist = join(__dirname, "schema.sql");
   const inSrc = join(__dirname, "../../src/db/schema.sql");
   const schemaPath = existsSync(inDist) ? inDist : inSrc;
+  if (!existsSync(schemaPath)) {
+    throw new Error(`Schema file not found. Tried: ${inDist} and ${inSrc}`);
+  }
   const schema = readFileSync(schemaPath, "utf-8");
   db.exec(schema);
 }

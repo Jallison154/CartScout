@@ -12,6 +12,9 @@ const TOKEN_KEY = "cartscout_access_token";
 const REFRESH_KEY = "cartscout_refresh_token";
 const EXPIRY_KEY = "cartscout_expires_in";
 
+/** Set by AuthProvider so onUnauthorized can clear session when refresh fails. */
+const clearSessionRef: { current: (() => void) | null } = { current: null };
+
 const getBaseUrl = () => {
   return process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 };
@@ -41,8 +44,13 @@ function getClient(): ApiClient | MockApiClient {
       onUnauthorized: async () => {
         const refreshToken = await storage.getItemAsync(REFRESH_KEY);
         if (refreshToken) {
-          const client = getClient() as ApiClient;
-          await client.refresh(refreshToken);
+          try {
+            const client = getClient() as ApiClient;
+            await client.refresh(refreshToken);
+          } catch {
+            clearSessionRef.current?.();
+            throw;
+          }
         }
       },
     });
@@ -69,7 +77,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     storage.getItemAsync(TOKEN_KEY).then((t) => {
       setToken(t);
       setIsLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
     });
+  }, []);
+
+  useEffect(() => {
+    clearSessionRef.current = () => {
+      storage.deleteItemAsync(TOKEN_KEY).then(() =>
+        storage.deleteItemAsync(REFRESH_KEY).then(() =>
+          storage.deleteItemAsync(EXPIRY_KEY).then(() => setToken(null))
+        )
+      );
+    };
+    return () => {
+      clearSessionRef.current = null;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

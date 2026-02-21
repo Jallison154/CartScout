@@ -5,6 +5,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middleware/auth.js";
 import { sendSuccess, asyncHandler } from "../../middleware/response.js";
 import { getAllStores, getFavoriteStoreIds, addFavorite, removeFavorite, } from "../../services/stores.service.js";
+import { parseAddFavoriteBody } from "../../validators/stores.validator.js";
 const router = Router();
 router.use(requireAuth);
 /** GET /api/v1/stores - list all stores (for settings store picker) */
@@ -21,8 +22,8 @@ router.get("/favorites", asyncHandler(async (req, res) => {
 /** POST /api/v1/stores/favorites - add a store to favorites (body: { store_id }) */
 router.post("/favorites", asyncHandler(async (req, res) => {
     const userId = req.userId;
-    const { store_id } = req.body;
-    const ids = addFavorite(userId, store_id ?? "");
+    const body = parseAddFavoriteBody(req.body);
+    const ids = addFavorite(userId, body.store_id);
     res.status(201);
     sendSuccess(res, ids);
 }));
