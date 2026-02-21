@@ -3,7 +3,7 @@
  * Caller provides getToken/setToken so mobile can use SecureStore.
  */
 
-import type { ApiErrorBody, ApiResponse } from "@cartscout/types";
+import type { ApiErrorBody, ApiResponse, AuthLoginResponse, AuthRefreshResponse } from "@cartscout/types";
 
 export interface ApiClientConfig {
   baseUrl: string;
@@ -73,41 +73,33 @@ export class ApiClient {
     return this.request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
   }
 
+  async put<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(path, { method: "PUT", body: JSON.stringify(body) });
+  }
+
   async delete<T = void>(path: string): Promise<ApiResponse<T>> {
     return this.request<T>(path, { method: "DELETE" });
   }
 
-  /** Auth: login. Returns { data: { user, accessToken, refreshToken, expiresIn } } */
+  /** Auth: login. Returns { data: AuthLoginResponse } */
   async login(email: string, password: string) {
-    const out = await this.post<{ user: { id: string; email: string }; accessToken: string; refreshToken: string; expiresIn: number }>(
-      "/api/v1/auth/login",
-      { email, password },
-      true
-    );
+    const out = await this.post<AuthLoginResponse>("/api/v1/auth/login", { email, password }, true);
     if (this.setTokens && out.data)
       await this.setTokens(out.data.accessToken, out.data.refreshToken, out.data.expiresIn);
     return out;
   }
 
-  /** Auth: register */
+  /** Auth: register. Returns { data: AuthLoginResponse } */
   async register(email: string, password: string) {
-    const out = await this.post<{ user: { id: string; email: string }; accessToken: string; refreshToken: string; expiresIn: number }>(
-      "/api/v1/auth/register",
-      { email, password },
-      true
-    );
+    const out = await this.post<AuthLoginResponse>("/api/v1/auth/register", { email, password }, true);
     if (this.setTokens && out.data)
       await this.setTokens(out.data.accessToken, out.data.refreshToken, out.data.expiresIn);
     return out;
   }
 
-  /** Auth: refresh (call from onUnauthorized to get new access token) */
+  /** Auth: refresh (call from onUnauthorized to get new access token). Returns { data: AuthRefreshResponse } */
   async refresh(refreshToken: string) {
-    const out = await this.post<{ accessToken: string; refreshToken: string; expiresIn: number }>(
-      "/api/v1/auth/refresh",
-      { refreshToken },
-      true
-    );
+    const out = await this.post<AuthRefreshResponse>("/api/v1/auth/refresh", { refreshToken }, true);
     if (this.setTokens && out.data)
       await this.setTokens(out.data.accessToken, out.data.refreshToken, out.data.expiresIn);
     return out;
@@ -157,6 +149,16 @@ export class ApiClient {
   /** DELETE /api/v1/lists/:id/items/:itemId */
   deleteListItem(listId: string, itemId: string) {
     return this.delete(`/api/v1/lists/${listId}/items/${itemId}`);
+  }
+
+  /** GET /api/v1/lists/:id/stores - store ids for this list */
+  listStores(listId: string) {
+    return this.get<string[]>(`/api/v1/lists/${listId}/stores`);
+  }
+
+  /** PUT /api/v1/lists/:id/stores - set stores for this list */
+  setListStores(listId: string, storeIds: string[]) {
+    return this.put<string[]>(`/api/v1/lists/${listId}/stores`, { store_ids: storeIds });
   }
 
   /** GET /api/v1/stores - list all stores */

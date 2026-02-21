@@ -14,6 +14,22 @@ export interface AuthTokens {
   expiresIn: number;
 }
 
+/** Response data for POST /api/v1/auth/login and POST /api/v1/auth/register */
+export interface AuthLoginResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+/** Response data for POST /api/v1/auth/refresh (same shape as login for convenience) */
+export interface AuthRefreshResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
 export interface List {
   id: string;
   name: string;

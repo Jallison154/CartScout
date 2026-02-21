@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../lib/auth";
+import { getApiErrorMessage } from "../lib/errors";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function RegisterScreen() {
       await register(e, password);
       router.replace("/(tabs)/lists");
     } catch (err) {
-      Alert.alert("Sign up failed", err instanceof Error ? err.message : "Please try again.");
+      Alert.alert("Sign up failed", getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }

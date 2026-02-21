@@ -1,6 +1,7 @@
 /**
  * Shared server types. API contract is stable for web and mobile.
  */
+export { AppError, ErrorCodes, type ErrorCode } from "./errors.js";
 
 export interface JwtPayload {
   sub: string;   // user id

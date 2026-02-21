@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView, Alert } from "react-native";
 import { useAuth } from "../../lib/auth";
+import { getApiErrorMessage } from "../../lib/errors";
 import type { Store } from "@cartscout/types";
-
-// Default stores shown when API returns none (e.g. fresh DB before seed)
-const DEFAULT_STORES: Store[] = [
-  { id: "store-kroger-1", external_id: "kroger-1", name: "Kroger", chain: "Kroger", source: "kroger" },
-  { id: "store-walmart-1", external_id: "walmart-1", name: "Walmart", chain: "Walmart", source: "walmart" },
-  { id: "store-target-1", external_id: "target-1", name: "Target", chain: "Target", source: "target" },
-  { id: "store-wholefoods-1", external_id: "wholefoods-1", name: "Whole Foods", chain: "Whole Foods", source: "wholefoods" },
-  { id: "store-publix-1", external_id: "publix-1", name: "Publix", chain: "Publix", source: "publix" },
-];
+import { DEFAULT_STORES } from "../../constants/stores";
 
 export default function SettingsScreen() {
   const { api, isAuthenticated } = useAuth();
@@ -20,7 +13,10 @@ export default function SettingsScreen() {
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
     Promise.all([
       api.stores().catch(() => ({ data: DEFAULT_STORES })),
       api.storeFavorites().catch(() => ({ data: [] as string[] })),
@@ -42,17 +38,7 @@ export default function SettingsScreen() {
       : api.addStoreFavorite(store.id);
     promise
       .then((res) => setFavoriteIds(new Set(res.data || [])))
-      .catch((e: Error) => {
-        const msg = e?.message || "";
-        if (msg.includes("Not found") || msg.includes("404")) {
-          Alert.alert(
-            "Server update needed",
-            "Store preferences need the latest API server. On your server run: sudo bash scripts/ubuntu-install.sh pull"
-          );
-        } else {
-          Alert.alert("Error", msg);
-        }
-      })
+      .catch((e) => Alert.alert("Error", getApiErrorMessage(e)))
       .finally(() => setSaving(null));
   };
 

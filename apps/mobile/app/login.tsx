@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../lib/auth";
+import { getApiErrorMessage } from "../lib/errors";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function LoginScreen() {
       await login(e, password);
       router.replace("/(tabs)/lists");
     } catch (err) {
-      Alert.alert("Sign in failed", err instanceof Error ? err.message : "Please try again.");
+      Alert.alert("Sign in failed", getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }

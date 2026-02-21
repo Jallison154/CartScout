@@ -3,10 +3,28 @@
  * Supports ?include=items for mobile (one request per list).
  */
 import { Router } from "express";
-import { v4 as uuidv4 } from "uuid";
-import db from "../db/client.js";
 import { requireAuth, type AuthRequest } from "../middleware/auth.js";
-import { sendSuccess, sendError, asyncHandler } from "../middleware/response.js";
+import { sendSuccess, asyncHandler } from "../middleware/response.js";
+import {
+  getListsForUser,
+  getListForUserWithItems,
+  requireListForUser,
+  getListStoreIds,
+  createList,
+  updateList,
+  deleteList,
+  setListStores,
+  addListItem,
+  updateListItem,
+  deleteListItem,
+} from "../services/lists.service.js";
+import {
+  parseCreateListBody,
+  parseUpdateListBody,
+  parseAddListItemBody,
+  parseUpdateListItemBody,
+  parseSetListStoresBody,
+} from "../validators/lists.validator.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -17,30 +35,8 @@ router.get(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const include = req.query.include === "items";
-
-    const lists = db.prepare(
-      "SELECT id, name, list_type, week_start, created_at, updated_at FROM lists WHERE user_id = ? ORDER BY updated_at DESC"
-    ).all(userId) as Array<{ id: string; name: string; list_type: string; week_start: string | null; created_at: string; updated_at: string }>;
-
-    if (!include) {
-      sendSuccess(res, lists);
-      return;
-    }
-
-    const result = await Promise.all(
-      lists.map((list) => {
-        const items = db.prepare(
-          `SELECT li.id, li.canonical_product_id, li.free_text, li.quantity, li.estimated_weight_override, li.sort_order, li.checked, li.created_at,
-                  cp.display_name, cp.brand, cp.size_description, cp.upc
-           FROM list_items li
-           LEFT JOIN canonical_products cp ON cp.id = li.canonical_product_id
-           WHERE li.list_id = ?
-           ORDER BY li.sort_order, li.created_at`
-        ).all(list.id) as Array<Record<string, unknown>>;
-        return { ...list, items };
-      })
-    );
-    sendSuccess(res, result);
+    const lists = getListsForUser(userId, include);
+    sendSuccess(res, lists);
   })
 );
 
@@ -49,18 +45,8 @@ router.post(
   "/",
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
-    const { name, list_type, week_start } = req.body as { name?: string; list_type?: string; week_start?: string };
-    const listName = (name && typeof name === "string") ? name.trim() : "New list";
-    const type = list_type === "current_week" || list_type === "next_order" ? list_type : "custom";
-    const id = uuidv4();
-    const now = new Date().toISOString();
-    db.prepare(
-      "INSERT INTO lists (id, user_id, name, list_type, week_start, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    ).run(id, userId, listName, type, week_start || null, now, now);
-
-    const list = db.prepare(
-      "SELECT id, name, list_type, week_start, created_at, updated_at FROM lists WHERE id = ?"
-    ).get(id) as Record<string, unknown>;
+    const body = parseCreateListBody(req.body);
+    const list = createList(userId, body);
     res.status(201);
     sendSuccess(res, list, undefined);
   })
@@ -72,25 +58,33 @@ router.get(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { id } = req.params;
-    const list = db.prepare(
-      "SELECT id, name, list_type, week_start, created_at, updated_at FROM lists WHERE id = ? AND user_id = ?"
-    ).get(id, userId) as Record<string, unknown> | undefined;
-    if (!list) {
-      sendError(res, "NOT_FOUND", "List not found", 404);
-      return;
-    }
-    if (req.query.include === "items") {
-      const items = db.prepare(
-        `SELECT li.id, li.canonical_product_id, li.free_text, li.quantity, li.estimated_weight_override, li.sort_order, li.checked, li.created_at,
-                cp.display_name, cp.brand, cp.size_description, cp.upc
-         FROM list_items li
-         LEFT JOIN canonical_products cp ON cp.id = li.canonical_product_id
-         WHERE li.list_id = ?
-         ORDER BY li.sort_order, li.created_at`
-      ).all(id) as Array<Record<string, unknown>>;
-      (list as Record<string, unknown>).items = items;
-    }
+    const includeItems = req.query.include === "items";
+    const list = getListForUserWithItems(userId, id, includeItems);
     sendSuccess(res, list);
+  })
+);
+
+/** GET /api/v1/lists/:id/stores - store ids for this list */
+router.get(
+  "/:id/stores",
+  asyncHandler(async (req: AuthRequest, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    requireListForUser(userId, id);
+    const storeIds = getListStoreIds(id);
+    sendSuccess(res, storeIds);
+  })
+);
+
+/** PUT /api/v1/lists/:id/stores - set stores for this list (body: { store_ids: string[] }) */
+router.put(
+  "/:id/stores",
+  asyncHandler(async (req: AuthRequest, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    const body = parseSetListStoresBody(req.body);
+    const result = setListStores(userId, id, body.store_ids);
+    sendSuccess(res, result);
   })
 );
 
@@ -100,39 +94,8 @@ router.patch(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { id } = req.params;
-    const { name, list_type, week_start } = req.body as { name?: string; list_type?: string; week_start?: string };
-
-    const existing = db.prepare("SELECT id FROM lists WHERE id = ? AND user_id = ?").get(id, userId);
-    if (!existing) {
-      sendError(res, "NOT_FOUND", "List not found", 404);
-      return;
-    }
-
-    const updates: string[] = [];
-    const values: unknown[] = [];
-    if (name !== undefined && typeof name === "string") {
-      updates.push("name = ?");
-      values.push(name.trim());
-    }
-    if (list_type === "current_week" || list_type === "next_order" || list_type === "custom") {
-      updates.push("list_type = ?");
-      values.push(list_type);
-    }
-    if (week_start !== undefined) {
-      updates.push("week_start = ?");
-      values.push(week_start === "" ? null : week_start);
-    }
-    if (updates.length === 0) {
-      const list = db.prepare("SELECT id, name, list_type, week_start, created_at, updated_at FROM lists WHERE id = ?").get(id);
-      sendSuccess(res, list);
-      return;
-    }
-    updates.push("updated_at = ?");
-    values.push(new Date().toISOString());
-    values.push(id);
-    db.prepare(`UPDATE lists SET ${updates.join(", ")} WHERE id = ?`).run(...values);
-
-    const list = db.prepare("SELECT id, name, list_type, week_start, created_at, updated_at FROM lists WHERE id = ?").get(id);
+    const body = parseUpdateListBody(req.body);
+    const list = updateList(userId, id, body);
     sendSuccess(res, list);
   })
 );
@@ -143,11 +106,7 @@ router.delete(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { id } = req.params;
-    const result = db.prepare("DELETE FROM lists WHERE id = ? AND user_id = ?").run(id, userId);
-    if (result.changes === 0) {
-      sendError(res, "NOT_FOUND", "List not found", 404);
-      return;
-    }
+    deleteList(userId, id);
     res.status(204).send();
   })
 );
@@ -158,36 +117,8 @@ router.post(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { id: listId } = req.params;
-    const { canonical_product_id, free_text, quantity } = req.body as {
-      canonical_product_id?: string;
-      free_text?: string;
-      quantity?: number;
-    };
-
-    const list = db.prepare("SELECT id FROM lists WHERE id = ? AND user_id = ?").get(listId, userId);
-    if (!list) {
-      sendError(res, "NOT_FOUND", "List not found", 404);
-      return;
-    }
-
-    const itemId = uuidv4();
-    const qty = typeof quantity === "number" && quantity > 0 ? quantity : 1;
-    const freeText = typeof free_text === "string" ? free_text.trim() : null;
-    const productId = canonical_product_id || null;
-    if (!productId && !freeText) {
-      sendError(res, "VALIDATION_ERROR", "Provide canonical_product_id or free_text", 400);
-      return;
-    }
-
-    const now = new Date().toISOString();
-    const maxOrder = db.prepare("SELECT COALESCE(MAX(sort_order), 0) + 1 AS next FROM list_items WHERE list_id = ?").get(listId) as { next: number };
-    db.prepare(
-      `INSERT INTO list_items (id, list_id, canonical_product_id, free_text, quantity, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`
-    ).run(itemId, listId, productId, freeText, qty, maxOrder.next, now);
-
-    const item = db.prepare(
-      "SELECT li.id, li.canonical_product_id, li.free_text, li.quantity, li.sort_order, li.checked, li.created_at, cp.display_name, cp.brand, cp.size_description FROM list_items li LEFT JOIN canonical_products cp ON cp.id = li.canonical_product_id WHERE li.id = ?"
-    ).get(itemId);
+    const body = parseAddListItemBody(req.body);
+    const item = addListItem(userId, listId, body);
     res.status(201);
     sendSuccess(res, item, undefined);
   })
@@ -199,40 +130,8 @@ router.patch(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { id: listId, itemId } = req.params;
-    const { quantity, checked } = req.body as { quantity?: number; checked?: boolean };
-
-    const list = db.prepare("SELECT id FROM lists WHERE id = ? AND user_id = ?").get(listId, userId);
-    if (!list) {
-      sendError(res, "NOT_FOUND", "List not found", 404);
-      return;
-    }
-
-    const updates: string[] = [];
-    const values: unknown[] = [];
-    if (typeof quantity === "number" && quantity > 0) {
-      updates.push("quantity = ?");
-      values.push(quantity);
-    }
-    if (typeof checked === "boolean") {
-      updates.push("checked = ?");
-      values.push(checked ? 1 : 0);
-    }
-    if (updates.length === 0) {
-      const item = db.prepare(
-        "SELECT li.id, li.canonical_product_id, li.free_text, li.quantity, li.sort_order, li.checked FROM list_items li WHERE li.id = ? AND li.list_id = ?"
-      ).get(itemId, listId);
-      sendSuccess(res, item);
-      return;
-    }
-    values.push(itemId, listId);
-    const result = db.prepare(`UPDATE list_items SET ${updates.join(", ")} WHERE id = ? AND list_id = ?`).run(...values);
-    if (result.changes === 0) {
-      sendError(res, "NOT_FOUND", "Item not found", 404);
-      return;
-    }
-    const item = db.prepare(
-      "SELECT li.id, li.canonical_product_id, li.free_text, li.quantity, li.sort_order, li.checked FROM list_items li WHERE li.id = ? AND li.list_id = ?"
-    ).get(itemId, listId);
+    const body = parseUpdateListItemBody(req.body);
+    const item = updateListItem(userId, listId, itemId, body);
     sendSuccess(res, item);
   })
 );
@@ -243,17 +142,7 @@ router.delete(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { id: listId, itemId } = req.params;
-
-    const list = db.prepare("SELECT id FROM lists WHERE id = ? AND user_id = ?").get(listId, userId);
-    if (!list) {
-      sendError(res, "NOT_FOUND", "List not found", 404);
-      return;
-    }
-    const result = db.prepare("DELETE FROM list_items WHERE id = ? AND list_id = ?").run(itemId, listId);
-    if (result.changes === 0) {
-      sendError(res, "NOT_FOUND", "Item not found", 404);
-      return;
-    }
+    deleteListItem(userId, listId, itemId);
     res.status(204).send();
   })
 );

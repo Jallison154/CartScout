@@ -2,10 +2,14 @@
  * Stores and user favorite stores. GET /api/v1/stores, GET/POST/DELETE /api/v1/stores/favorites.
  */
 import { Router } from "express";
-import { v4 as uuidv4 } from "uuid";
-import db from "../db/client.js";
 import { requireAuth, type AuthRequest } from "../middleware/auth.js";
-import { sendSuccess, sendError, asyncHandler } from "../middleware/response.js";
+import { sendSuccess, asyncHandler } from "../middleware/response.js";
+import {
+  getAllStores,
+  getFavoriteStoreIds,
+  addFavorite,
+  removeFavorite,
+} from "../services/stores.service.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -14,9 +18,7 @@ router.use(requireAuth);
 router.get(
   "/",
   asyncHandler(async (_req: AuthRequest, res) => {
-    const stores = db.prepare(
-      "SELECT id, external_id, name, address_line, city, state, zip_code, chain, source FROM stores ORDER BY chain, name"
-    ).all() as Array<Record<string, unknown>>;
+    const stores = getAllStores();
     sendSuccess(res, stores);
   })
 );
@@ -26,10 +28,8 @@ router.get(
   "/favorites",
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
-    const rows = db.prepare(
-      "SELECT store_id FROM user_favorite_stores WHERE user_id = ?"
-    ).all(userId) as Array<{ store_id: string }>;
-    sendSuccess(res, rows.map((r) => r.store_id));
+    const ids = getFavoriteStoreIds(userId);
+    sendSuccess(res, ids);
   })
 );
 
@@ -39,25 +39,9 @@ router.post(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { store_id } = req.body as { store_id?: string };
-    if (!store_id || typeof store_id !== "string") {
-      sendError(res, "VALIDATION_ERROR", "store_id is required", 400);
-      return;
-    }
-    const store = db.prepare("SELECT id FROM stores WHERE id = ?").get(store_id);
-    if (!store) {
-      sendError(res, "NOT_FOUND", "Store not found", 404);
-      return;
-    }
-    const id = uuidv4();
-    const now = new Date().toISOString();
-    db.prepare(
-      "INSERT OR IGNORE INTO user_favorite_stores (id, user_id, store_id, created_at) VALUES (?, ?, ?, ?)"
-    ).run(id, userId, store_id, now);
-    const list = db.prepare(
-      "SELECT store_id FROM user_favorite_stores WHERE user_id = ?"
-    ).all(userId) as Array<{ store_id: string }>;
+    const ids = addFavorite(userId, store_id ?? "");
     res.status(201);
-    sendSuccess(res, list.map((r) => r.store_id));
+    sendSuccess(res, ids);
   })
 );
 
@@ -67,13 +51,8 @@ router.delete(
   asyncHandler(async (req: AuthRequest, res) => {
     const userId = req.userId!;
     const { storeId } = req.params;
-    db.prepare(
-      "DELETE FROM user_favorite_stores WHERE user_id = ? AND store_id = ?"
-    ).run(userId, storeId);
-    const list = db.prepare(
-      "SELECT store_id FROM user_favorite_stores WHERE user_id = ?"
-    ).all(userId) as Array<{ store_id: string }>;
-    sendSuccess(res, list.map((r) => r.store_id));
+    const ids = removeFavorite(userId, storeId);
+    sendSuccess(res, ids);
   })
 );
 

@@ -110,6 +110,16 @@ CREATE TABLE IF NOT EXISTS user_favorite_stores (
   UNIQUE(user_id, store_id)
 );
 
+-- Stores per list (which stores this list is for)
+CREATE TABLE IF NOT EXISTS list_stores (
+  id TEXT PRIMARY KEY,
+  list_id TEXT NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+  store_id TEXT NOT NULL REFERENCES stores(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(list_id, store_id)
+);
+CREATE INDEX IF NOT EXISTS idx_list_stores_list_id ON list_stores(list_id);
+
 -- Seed a few example stores (user can select which to use per list later)
 INSERT OR IGNORE INTO stores (id, external_id, name, chain, source) VALUES
   ('store-kroger-1', 'kroger-1', 'Kroger', 'Kroger', 'kroger'),
