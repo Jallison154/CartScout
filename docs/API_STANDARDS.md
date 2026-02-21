@@ -4,6 +4,14 @@ Base path: **`/api/v1`**. All responses are JSON.
 
 ---
 
+## Naming conventions
+
+- **Lists, list items, stores, products:** JSON field names use **snake_case** (e.g. `created_at`, `list_type`, `canonical_product_id`, `display_name`). This matches the database and `@cartscout/types` (`List`, `ListItem`, `Store`, `CanonicalProduct`).
+- **Auth user:** The user object in `GET /api/v1/auth/me` and in login/register/refresh responses uses **camelCase** for the single timestamp: `createdAt`. All other auth fields are lowercase (`id`, `email`). Contract type: `User` in `@cartscout/types`.
+- New endpoints should follow these conventions so client types stay in sync with server responses.
+
+---
+
 ## Success responses
 
 - **200 OK** — GET/PATCH/PUT success. Body: `{ "data": <payload>, "meta": { ... }? }`.
@@ -52,8 +60,6 @@ Clients should use `error.code` for logic and `error.message` for display.
 - **GET /api/v1/lists/:id/stores** — Store IDs for this list. Returns `{ "data": ["store-id", ...] }`.
 - **PUT /api/v1/lists/:id/stores** — Set stores for this list. Body: `{ "store_ids": ["store-id", ...] }`. Returns `{ "data": ["store-id", ...] }`.
 
-List and list-item payloads use **snake_case** (e.g. `created_at`, `list_type`, `canonical_product_id`).
-
 ---
 
 ## List items
@@ -77,3 +83,11 @@ List and list-item payloads use **snake_case** (e.g. `created_at`, `list_type`, 
 ## Versioning
 
 API prefix is `/api/v1`. Breaking changes will be introduced under a new version path (e.g. `/api/v2`). Non-breaking additions (new optional fields, new endpoints) may be made within v1.
+
+---
+
+## Production
+
+- **HTTPS only:** Serve the API over TLS in production. Do not send access or refresh tokens over plain HTTP.
+- **Secrets:** Set `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` to long random strings (min 32 characters). The server refuses to start when `NODE_ENV=production` if these are missing or still the default dev values.
+- **Environment:** Copy `.env.example` to `.env` and set all required variables before deploying.

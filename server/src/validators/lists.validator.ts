@@ -5,22 +5,25 @@ import { z } from "zod";
 import { AppError } from "../types/index.js";
 
 const listTypeEnum = z.enum(["current_week", "next_order", "custom"]);
+const LIST_NAME_MAX = 200;
+const FREE_TEXT_MAX = 500;
+const ID_MAX = 64;
 
 export const createListBodySchema = z.object({
-  name: z.string().optional().transform((s) => (s != null && typeof s === "string" ? (s.trim() || undefined) : undefined)),
+  name: z.string().max(LIST_NAME_MAX, "Name too long").optional().transform((s) => (s != null && typeof s === "string" ? (s.trim() || undefined) : undefined)),
   list_type: listTypeEnum.optional(),
-  week_start: z.string().optional().nullable(),
+  week_start: z.string().max(32).optional().nullable(),
 });
 
 export const updateListBodySchema = z.object({
-  name: z.string().optional().transform((s) => (s != null && typeof s === "string" ? s.trim() : undefined)),
+  name: z.string().max(LIST_NAME_MAX, "Name too long").optional().transform((s) => (s != null && typeof s === "string" ? s.trim() : undefined)),
   list_type: listTypeEnum.optional(),
-  week_start: z.union([z.string(), z.literal("")]).optional().transform((v) => (v === "" ? null : v)),
+  week_start: z.union([z.string().max(32), z.literal("")]).optional().transform((v) => (v === "" ? null : v)),
 });
 
 export const addListItemBodySchema = z.object({
-  canonical_product_id: z.string().optional().nullable(),
-  free_text: z.string().optional().transform((s) => (s != null && typeof s === "string" ? s.trim() || null : null)),
+  canonical_product_id: z.string().max(ID_MAX).optional().nullable(),
+  free_text: z.string().max(FREE_TEXT_MAX, "Free text too long").optional().transform((s) => (s != null && typeof s === "string" ? s.trim() || null : null)),
   quantity: z.number().positive().optional(),
 }).refine(
   (data) =>
@@ -35,7 +38,7 @@ export const updateListItemBodySchema = z.object({
 });
 
 export const setListStoresBodySchema = z.object({
-  store_ids: z.array(z.string()).optional().default([]),
+  store_ids: z.array(z.string().max(ID_MAX)).max(50, "Too many stores").optional().default([]),
 });
 
 export type CreateListBody = z.infer<typeof createListBodySchema>;

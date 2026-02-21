@@ -12,6 +12,8 @@ export function sendSuccess<T>(res: Response, data: T, meta?: ApiSuccess["meta"]
 }
 
 export function sendError(res: Response, code: string, message: string, statusCode: number = 400): void {
+  res.locals = res.locals || {};
+  (res.locals as { errorCode?: string }).errorCode = code;
   const body: ApiError = { error: { code, message } };
   res.status(statusCode).json(body);
 }

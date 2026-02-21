@@ -2,14 +2,14 @@
  * Stores and user favorite stores. GET /api/v1/stores, GET/POST/DELETE /api/v1/stores/favorites.
  */
 import { Router } from "express";
-import { requireAuth, type AuthRequest } from "../middleware/auth.js";
-import { sendSuccess, asyncHandler } from "../middleware/response.js";
+import { requireAuth, type AuthRequest } from "../../middleware/auth.js";
+import { sendSuccess, asyncHandler } from "../../middleware/response.js";
 import {
   getAllStores,
   getFavoriteStoreIds,
   addFavorite,
   removeFavorite,
-} from "../services/stores.service.js";
+} from "../../services/stores.service.js";
 
 const router = Router();
 router.use(requireAuth);

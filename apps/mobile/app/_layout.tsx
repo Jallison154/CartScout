@@ -2,7 +2,17 @@ import { useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
 import { StatusBar } from "expo-status-bar";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "../lib/auth";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
 function DeepLinkHandler() {
   const router = useRouter();
@@ -34,9 +44,10 @@ function DeepLinkHandler() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StatusBar style="auto" />
-      <DeepLinkHandler />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <StatusBar style="auto" />
+        <DeepLinkHandler />
       <Stack screenOptions={{ headerShown: true }}>
         <Stack.Screen name="index" options={{ title: "CartScout" }} />
         <Stack.Screen name="login" options={{ title: "Sign in" }} />
@@ -44,6 +55,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="list/[id]" options={{ title: "List" }} />
       </Stack>
-    </AuthProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

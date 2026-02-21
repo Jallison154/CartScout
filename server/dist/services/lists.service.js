@@ -98,14 +98,17 @@ export function deleteList(userId, listId) {
 export function setListStores(userId, listId, storeIds) {
     requireListForUser(userId, listId);
     const ids = storeIds.filter((s) => typeof s === "string");
-    db.prepare("DELETE FROM list_stores WHERE list_id = ?").run(listId);
-    const now = new Date().toISOString();
-    for (const storeId of ids) {
-        const row = db.prepare("SELECT id FROM stores WHERE id = ?").get(storeId);
-        if (row) {
-            db.prepare("INSERT INTO list_stores (id, list_id, store_id, created_at) VALUES (?, ?, ?, ?)").run(uuidv4(), listId, storeId, now);
+    const runSetStoresTransaction = db.transaction(() => {
+        db.prepare("DELETE FROM list_stores WHERE list_id = ?").run(listId);
+        const now = new Date().toISOString();
+        for (const storeId of ids) {
+            const row = db.prepare("SELECT id FROM stores WHERE id = ?").get(storeId);
+            if (row) {
+                db.prepare("INSERT INTO list_stores (id, list_id, store_id, created_at) VALUES (?, ?, ?, ?)").run(uuidv4(), listId, storeId, now);
+            }
         }
-    }
+    });
+    runSetStoresTransaction();
     return getListStoreIds(listId);
 }
 const LIST_ITEM_WITH_PRODUCT = "SELECT li.id, li.canonical_product_id, li.free_text, li.quantity, li.sort_order, li.checked, li.created_at, cp.display_name, cp.brand, cp.size_description FROM list_items li LEFT JOIN canonical_products cp ON cp.id = li.canonical_product_id WHERE li.id = ?";

@@ -4,16 +4,24 @@
  */
 import express from "express";
 import cors from "cors";
-import { initDb } from "./db/client.js";
+import { initDb, pingDb, pruneExpiredRefreshTokens } from "./db/client.js";
 import { sendError } from "./middleware/response.js";
-import routes from "./routes/index.js";
-import { config } from "./config.js";
+import { requestLogger } from "./middleware/requestLogger.js";
+import v1Routes from "./api/v1/index.js";
+import { config, assertProductionSecrets } from "./config.js";
+assertProductionSecrets();
 initDb();
+pruneExpiredRefreshTokens();
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
-app.use("/api/v1", routes);
+app.use(requestLogger);
+app.use("/api/v1", v1Routes);
 app.get("/health", (_req, res) => {
+    if (!pingDb()) {
+        res.status(503).json({ status: "error", message: "Database unavailable" });
+        return;
+    }
     res.json({ status: "ok", version: "0.1.0" });
 });
 app.use((_req, res) => {

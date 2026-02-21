@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -14,19 +14,28 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import { useAuth } from "../../lib/auth";
+import { useList } from "../../hooks/useList";
 import { getApiErrorMessage } from "../../lib/errors";
-import type { List, ListItem, CanonicalProduct, Store } from "@cartscout/types";
+import type { ListItem, CanonicalProduct, Store } from "@cartscout/types";
 import { DEFAULT_STORES } from "../../constants/stores";
 
 export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const navigation = useNavigation();
-  const { api, isAuthenticated } = useAuth();
-  const [list, setList] = useState<List | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { api } = useAuth();
+  const {
+    list,
+    isLoading: loading,
+    refetch: loadList,
+    addItem: addItemMutation,
+    addItemPending: adding,
+    updateListItem,
+    deleteItem: deleteItemMutation,
+    updateList: updateListMutation,
+    setListStores: setListStoresMutation,
+  } = useList(id);
   const [newItemText, setNewItemText] = useState("");
-  const [adding, setAdding] = useState(false);
   const [suggestions, setSuggestions] = useState<CanonicalProduct[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [renameVisible, setRenameVisible] = useState(false);
@@ -35,20 +44,8 @@ export default function ListDetailScreen() {
   const [listStoreIds, setListStoreIds] = useState<string[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadList = useCallback(() => {
-    if (!id || !isAuthenticated) return;
-    api.list(id, true).then((res) => {
-      setList(res.data || null);
-    }).catch(() => setList(null)).finally(() => setLoading(false));
-  }, [id, isAuthenticated, api]);
-
-  useEffect(() => {
-    loadList();
-  }, [loadList]);
-
   useEffect(() => {
     if (!id || !list) return;
-    setListStoreIds([]);
     api.listStores(id).then((res) => setListStoreIds(res.data || [])).catch(() => setListStoreIds([]));
   }, [id, list, api]);
 
@@ -93,44 +90,36 @@ export default function ListDetailScreen() {
   const addItem = (product?: CanonicalProduct) => {
     const text = newItemText.trim();
     if (!id || adding) return;
+    const onSuccess = () => {
+      setNewItemText("");
+      setSuggestions([]);
+    };
     if (product) {
-      setAdding(true);
-      api.addListItem(id, { canonical_product_id: product.id, quantity: 1 }).then(() => {
-        setNewItemText("");
-        setSuggestions([]);
-        loadList();
-      }).catch((e) => Alert.alert("Error", getApiErrorMessage(e))).finally(() => setAdding(false));
+      addItemMutation({ canonical_product_id: product.id, quantity: 1 }).then(onSuccess).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
       return;
     }
     if (!text) return;
-    setAdding(true);
-    api.addListItem(id, { free_text: text, quantity: 1 }).then(() => {
-      setNewItemText("");
-      setSuggestions([]);
-      loadList();
-    }).catch((e) => Alert.alert("Error", getApiErrorMessage(e))).finally(() => setAdding(false));
+    addItemMutation({ free_text: text, quantity: 1 }).then(onSuccess).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
   };
 
   const toggleChecked = (item: ListItem) => {
     if (!id) return;
-    api.updateListItem(id, item.id, { checked: item.checked !== 1 }).then(loadList).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
+    updateListItem(item.id, { checked: item.checked !== 1 }).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
   };
 
   const deleteItem = (item: ListItem) => {
     if (!id) return;
     Alert.alert("Remove item", `Remove "${item.free_text || item.display_name || "Item"}"?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Remove", style: "destructive", onPress: () => api.deleteListItem(id, item.id).then(loadList).catch((e) => Alert.alert("Error", getApiErrorMessage(e))) },
+      { text: "Remove", style: "destructive", onPress: () => deleteItemMutation(item.id).catch((e) => Alert.alert("Error", getApiErrorMessage(e))) },
     ]);
   };
 
   const uncheckAll = () => {
-    if (!id) return;
-    const checkedItems = (list?.items || []).filter((i) => i.checked === 1);
+    if (!id || !list) return;
+    const checkedItems = (list.items || []).filter((i) => i.checked === 1);
     if (checkedItems.length === 0) return;
-    Promise.all(checkedItems.map((item) => api.updateListItem(id, item.id, { checked: false })))
-      .then(loadList)
-      .catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
+    Promise.all(checkedItems.map((item) => updateListItem(item.id, { checked: false }))).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
   };
 
   const openRename = () => {
@@ -146,11 +135,7 @@ export default function ListDetailScreen() {
       setRenameVisible(false);
       return;
     }
-    api.updateList(id, { name }).then(() => {
-      setList((prev) => (prev ? { ...prev, name } : null));
-      setRenameVisible(false);
-      loadList();
-    }).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
+    updateListMutation({ name }).then(() => setRenameVisible(false)).catch((e) => Alert.alert("Error", getApiErrorMessage(e)));
   };
 
   const toggleListStore = (store: Store) => {
@@ -159,7 +144,7 @@ export default function ListDetailScreen() {
       ? listStoreIds.filter((s) => s !== store.id)
       : [...listStoreIds, store.id];
     setListStoreIds(next);
-    api.setListStores(id, next).catch((e) => {
+    setListStoresMutation(next).catch((e) => {
       Alert.alert("Error", getApiErrorMessage(e));
       setListStoreIds(listStoreIds);
     });

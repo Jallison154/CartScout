@@ -65,7 +65,8 @@ export async function register(body: { email: string; password: string }): Promi
   return { user: { id, email }, ...tokens };
 }
 
-/** Login. Body must be validated (e.g. via parseLoginBody). Throws AppError on invalid credentials. */
+/** Login. Body must be validated (e.g. via parseLoginBody). Throws AppError on invalid credentials.
+ * Uses same message for "user not found" and "wrong password" to avoid leaking account existence. */
 export async function login(body: { email: string; password: string }): Promise<AuthLoginResult> {
   const { email, password } = body;
 
@@ -107,10 +108,13 @@ export async function refresh(refreshTokenFromBody: string): Promise<AuthLoginRe
     throw AppError.unauthorized("Refresh token not found or expired");
   }
 
-  db.prepare("DELETE FROM refresh_tokens WHERE id = ?").run(row.id);
-
-  const tokens = createSession(row.user_id);
-  return { user: { id: row.user_id, email: row.email }, ...tokens };
+  let tokens: { accessToken: string; refreshToken: string; expiresIn: number };
+  const runRefreshTransaction = db.transaction(() => {
+    db.prepare("DELETE FROM refresh_tokens WHERE id = ?").run(row.id);
+    tokens = createSession(row.user_id);
+  });
+  runRefreshTransaction();
+  return { user: { id: row.user_id, email: row.email }, ...tokens! };
 }
 
 /** Get current user by id. Throws AppError.notFound if user does not exist. */

@@ -2,9 +2,9 @@
  * Register push device tokens for notifications (list reminders, price updates).
  */
 import { Router } from "express";
-import { requireAuth, type AuthRequest } from "../middleware/auth.js";
-import { sendSuccess, asyncHandler } from "../middleware/response.js";
-import { registerToken } from "../services/push.service.js";
+import { requireAuth, type AuthRequest } from "../../middleware/auth.js";
+import { sendSuccess, asyncHandler } from "../../middleware/response.js";
+import { registerToken } from "../../services/push.service.js";
 
 const router = Router();
 router.use(requireAuth);

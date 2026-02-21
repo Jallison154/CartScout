@@ -3,17 +3,19 @@
  */
 import { z } from "zod";
 import { AppError } from "../types/index.js";
+const EMAIL_MAX = 255;
+const PASSWORD_MAX = 128;
 export const registerBodySchema = z.object({
-    email: z.string().min(1, "Email and password are required").transform((s) => s.trim().toLowerCase()),
-    password: z.string().min(1, "Email and password are required"),
+    email: z.string().min(1, "Email and password are required").max(EMAIL_MAX, "Email too long").transform((s) => s.trim().toLowerCase()),
+    password: z.string().min(1, "Email and password are required").max(PASSWORD_MAX, "Password too long"),
 }).refine((data) => data.email.length >= 3, { message: "Invalid email", path: ["email"] })
     .refine((data) => data.password.length >= 8, { message: "Password must be at least 8 characters", path: ["password"] });
 export const loginBodySchema = z.object({
-    email: z.string().min(1, "Email and password are required").transform((s) => s.trim().toLowerCase()),
-    password: z.string().min(1, "Email and password are required"),
+    email: z.string().min(1, "Email and password are required").max(EMAIL_MAX, "Email too long").transform((s) => s.trim().toLowerCase()),
+    password: z.string().min(1, "Email and password are required").max(PASSWORD_MAX, "Password too long"),
 });
 export const refreshBodySchema = z.object({
-    refreshToken: z.string().min(1, "refreshToken is required"),
+    refreshToken: z.string().min(1, "refreshToken is required").max(1024, "refreshToken too long"),
 });
 function formatZodError(error) {
     const first = error.errors[0];

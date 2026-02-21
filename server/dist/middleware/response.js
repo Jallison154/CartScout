@@ -5,6 +5,8 @@ export function sendSuccess(res, data, meta) {
     res.json(body);
 }
 export function sendError(res, code, message, statusCode = 400) {
+    res.locals = res.locals || {};
+    res.locals.errorCode = code;
     const body = { error: { code, message } };
     res.status(statusCode).json(body);
 }

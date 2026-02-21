@@ -132,14 +132,17 @@ export function deleteList(userId: string, listId: string): void {
 export function setListStores(userId: string, listId: string, storeIds: string[]): string[] {
   requireListForUser(userId, listId);
   const ids = storeIds.filter((s): s is string => typeof s === "string");
-  db.prepare("DELETE FROM list_stores WHERE list_id = ?").run(listId);
-  const now = new Date().toISOString();
-  for (const storeId of ids) {
-    const row = db.prepare("SELECT id FROM stores WHERE id = ?").get(storeId);
-    if (row) {
-      db.prepare("INSERT INTO list_stores (id, list_id, store_id, created_at) VALUES (?, ?, ?, ?)").run(uuidv4(), listId, storeId, now);
+  const runSetStoresTransaction = db.transaction(() => {
+    db.prepare("DELETE FROM list_stores WHERE list_id = ?").run(listId);
+    const now = new Date().toISOString();
+    for (const storeId of ids) {
+      const row = db.prepare("SELECT id FROM stores WHERE id = ?").get(storeId);
+      if (row) {
+        db.prepare("INSERT INTO list_stores (id, list_id, store_id, created_at) VALUES (?, ?, ?, ?)").run(uuidv4(), listId, storeId, now);
+      }
     }
-  }
+  });
+  runSetStoresTransaction();
   return getListStoreIds(listId);
 }
 

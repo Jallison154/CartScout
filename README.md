@@ -19,7 +19,7 @@ Grocery list app built for **iPhone and Android** (Expo/React Native) with an AP
    - **Option A:** Move or clone the project to a path without spaces or parentheses (e.g. `~/CartScout`), run `npm install` there, then `npm run server`; or  
    - **Option B:** From the project root, run `npm run server` after `npm install --ignore-scripts` — the API will still fail to start until `better-sqlite3` is built (move the project and run `npm install` once to fix).
 
-2. **Environment** (optional for local dev): Copy `.env.example` to `.env` and set `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` if you want. The server will run with defaults otherwise.
+2. **Environment** (optional for local dev): Copy `.env.example` to `.env` and set `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` if you want. The server will run with defaults otherwise. **For production:** set `NODE_ENV=production`, use strong secrets (min 32 chars), and serve over HTTPS only—see `docs/API_STANDARDS.md` (Production).
 
 3. **Run the API** (Terminal 1):
    ```bash
