@@ -25,6 +25,15 @@ if [[ "$(id -u)" -ne 0 ]]; then
   SUDO="sudo"
 fi
 
+# Pipe NodeSource (or similar) setup into bash. Empty $SUDO breaks `| $SUDO -E bash -` when root.
+run_root_bash_from_stdin() {
+  if [[ "$(id -u)" -eq 0 ]]; then
+    bash -
+  else
+    sudo -E bash -
+  fi
+}
+
 die() {
   echo "error: $*" >&2
   exit 1
@@ -63,7 +72,7 @@ install_nodejs() {
   fi
 
   echo "Installing Node.js 22.x from NodeSource (required for node:sqlite; Node 20 is not supported)…"
-  curl -fsSL https://deb.nodesource.com/setup_22.x | $SUDO -E bash -
+  curl -fsSL https://deb.nodesource.com/setup_22.x | run_root_bash_from_stdin
   $SUDO apt-get install -y nodejs
   command -v node >/dev/null 2>&1 || die "node not found after install"
   [[ "$(node_major)" -ge 22 ]] || die "Need Node.js 22+"
