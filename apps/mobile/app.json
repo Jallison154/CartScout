@@ -14,9 +14,20 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cartscout.app",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "CartScout uses the camera to scan product barcodes and to photograph receipts. You can also pick receipt photos from your library to import items into your grocery lists.",
+        "NSPhotoLibraryUsageDescription": "CartScout needs access to your photo library when you choose an existing receipt image to import line items into your grocery lists."
+      }
     },
     "android": {
+      "package": "com.cartscout.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -33,15 +44,15 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow CartScout to scan product barcodes and add items to your list.",
+          "cameraPermission": "CartScout uses the camera to scan product barcodes and to photograph receipts. You can also pick receipt photos from your library to import items into your grocery lists.",
           "recordAudioAndroid": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow CartScout to import receipt photos into your lists.",
-          "cameraPermission": "Allow CartScout to photograph receipts for your lists."
+          "photosPermission": "CartScout needs access to your photo library when you choose an existing receipt image to import line items into your grocery lists.",
+          "cameraPermission": "CartScout uses the camera to scan product barcodes and to photograph receipts. You can also pick receipt photos from your library to import items into your grocery lists."
         }
       ]
     ]
