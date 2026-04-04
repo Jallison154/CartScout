@@ -115,6 +115,18 @@ For a simple VM on your network (e.g. Proxmox + Ubuntu) so an iPhone can hit the
 
 8. **Verify from another device:** On the VM, `hostname -I` or `ip a` for the LAN IP. From phone or laptop: `curl -sS http://<LAN-IP>:4000/health`. Allow the port in the host firewall if needed (`sudo ufw allow 4000/tcp`). Point **`EXPO_PUBLIC_API_URL`** at `http://<LAN-IP>:4000`.
 
+**Web UI on the same VM (optional):** Build the Vite app and point the API at the output folder, then restart PM2:
+
+```bash
+cd /opt/cartscout
+npm run build --workspace=@cartscout/web
+echo 'WEB_UI_DIST=/opt/cartscout/apps/web/dist' >> /opt/cartscout/cartscout.env
+# edit cartscout.env if the line duplicates — keep one WEB_UI_DIST=...
+pm2 restart cartscout-api
+```
+
+Open **`http://<LAN-IP>:4000/`** in a browser. Do **not** set `VITE_API_URL` in that production build so the client uses the same origin as the page.
+
 `server/deploy/install.sh` is a thin wrapper that calls **`scripts/ubuntu-install.sh`**.
 
 ### Auth (JSON tokens, no cookies)
