@@ -2,6 +2,8 @@
 
 iPhone-first grocery app (Expo) and API (Express), organized as a small monorepo.
 
+**Repository:** https://github.com/Jallison154/CartScout
+
 ## Layout
 
 | Path | Role |
@@ -61,6 +63,11 @@ For a simple VM on your network (e.g. Proxmox + Ubuntu) so an iPhone can hit the
 2. **Install path:** Default is **`/opt/cartscout`** (full monorepo clone). Override with `INSTALL_ROOT` if needed.
 3. **Run the installer** (as a user who owns `/opt/cartscout`, use `sudo` only when the script invokes apt/npm global):
 
+   Do **not** `mkdir /opt/cartscout`, put files in it, then `git clone … /opt/cartscout` — Git refuses a non-empty directory. Either:
+   - **A)** Remove and clone: **`cd /` first** if you were inside `/opt/cartscout` — otherwise `rm -rf` leaves your shell with no valid working directory and `git clone` can fail. Then: `sudo rm -rf /opt/cartscout && sudo git clone https://github.com/Jallison154/CartScout.git /opt/cartscout` (then `chown` to your user), *or*
+   - **B)** Clone without pre-creating the folder: `git clone … /opt/cartscout` (only works if `/opt/cartscout` does not exist yet), *or*
+   - **C)** Leave `/opt/cartscout` **empty** and run `./scripts/ubuntu-install.sh install` with `GIT_REPO` set.
+
    ```bash
    sudo mkdir -p /opt/cartscout
    sudo chown -R "$USER":"$USER" /opt/cartscout
@@ -69,7 +76,7 @@ For a simple VM on your network (e.g. Proxmox + Ubuntu) so an iPhone can hit the
    **If the directory is empty**, set `GIT_REPO` and install (clones for you):
 
    ```bash
-   export GIT_REPO=https://github.com/<you>/CartScout.git
+   export GIT_REPO=https://github.com/Jallison154/CartScout.git
    ./scripts/ubuntu-install.sh install
    ```
 

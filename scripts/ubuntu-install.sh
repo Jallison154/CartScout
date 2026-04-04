@@ -7,7 +7,7 @@
 # The script installs Node 22 LTS from NodeSource, not 20 — Node 20 cannot run this API.
 #
 # Usage:
-#   export GIT_REPO=https://github.com/you/CartScout.git   # only if /opt/cartscout is empty
+#   export GIT_REPO=https://github.com/Jallison154/CartScout.git   # only if /opt/cartscout is empty
 #   sudo mkdir -p /opt/cartscout && sudo chown -R "$USER":"$USER" /opt/cartscout
 #   ./scripts/ubuntu-install.sh install    # from repo clone, OR clones into INSTALL_ROOT if empty + GIT_REPO
 #
