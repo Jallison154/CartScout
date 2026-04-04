@@ -1,0 +1,13 @@
+{
+  "name": "cartscout",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "server"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace=@cartscout/mobile",
+    "server": "npm run dev --workspace=@cartscout/server"
+  }
+}

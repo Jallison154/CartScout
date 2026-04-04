@@ -1,0 +1,18 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Server SQLite (local dev)
+server/data/
+
+# Expo
+.expo
+web-build
+
+# Native (prebuild / local builds)
+apps/mobile/ios
+apps/mobile/android
