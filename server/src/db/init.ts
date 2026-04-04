@@ -7,9 +7,11 @@ import { resolveSchemaPath } from './paths.js';
  * Idempotent for schema: uses `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS`.
  */
 export function initializeDatabase(): void {
-  const schemaSql = readFileSync(resolveSchemaPath(), 'utf8');
+  const schemaPath = resolveSchemaPath();
+  const schemaSql = readFileSync(schemaPath, 'utf8');
   const instance = attachDatabase();
   instance.exec(schemaSql);
+  console.info(`[cartscout] applied schema from ${schemaPath}`);
 }
 
 /**
