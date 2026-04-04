@@ -145,7 +145,8 @@ npm_install_and_build() {
     fi
   else
     [[ -f "$REPO_ROOT/package-lock.json" ]] || die "missing $REPO_ROOT/package-lock.json — use full CartScout monorepo clone"
-    (cd "$REPO_ROOT" && npm ci -w @cartscout/server && npm run build -w @cartscout/server)
+    # Install server + web workspaces so `npm run build --workspace=@cartscout/web` works (not server-only).
+    (cd "$REPO_ROOT" && npm ci -w @cartscout/server -w @cartscout/web && npm run build -w @cartscout/server)
   fi
 }
 
@@ -154,6 +155,8 @@ clean_node_modules() {
   rm -rf "$REPO_ROOT/node_modules"
   if [[ "$REPO_ROOT" != "$SERVER_DIR" ]]; then
     rm -rf "$SERVER_DIR/node_modules"
+    rm -rf "$REPO_ROOT/apps/web/node_modules"
+    rm -rf "$REPO_ROOT/apps/mobile/node_modules"
   fi
 }
 
