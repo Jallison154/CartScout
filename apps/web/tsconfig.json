@@ -10,8 +10,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
-    "paths": { "@/*": ["./src/*"] },
-    "types": ["vite/client"]
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"]
 }
