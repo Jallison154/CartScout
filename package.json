@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "mobile": "npm run start --workspace=@cartscout/mobile",
+    "web": "npm run dev --workspace=@cartscout/web",
     "server": "npm run dev --workspace=@cartscout/server"
   }
 }

@@ -9,6 +9,7 @@ iPhone-first grocery app (Expo) and API (Express), organized as a small monorepo
 | Path | Role |
 |------|------|
 | `apps/mobile` | Expo Router app with tabs (Home, Lists, Settings), auth, and grocery lists UI |
+| `apps/web` | Temporary Vite + React web UI for LAN dev (same API as mobile) |
 | `server` | Node.js HTTP API (Express, TypeScript) |
 | `packages/types` | Shared TypeScript types |
 | `packages/api-client` | Typed HTTP helpers for the API |
@@ -42,6 +43,14 @@ cd apps/mobile && npm run start
 ```
 
 Copy `apps/mobile/.env.example` to `apps/mobile/.env` and set `EXPO_PUBLIC_API_URL` (use your machine’s LAN IP when testing on a device, e.g. `http://192.168.1.10:4000`). The app stores access and refresh tokens with **Expo SecureStore**, restores the session on launch via `/api/v1/auth/me` and `/api/v1/auth/refresh`, and routes signed-in users to the main shell (`/home`).
+
+**Web** (Vite + React — desktop or phone browser, same API as the iPhone app):
+
+```bash
+npm run web
+```
+
+Copy `apps/web/.env.example` to `apps/web/.env` and set **`VITE_API_URL`** to your API (e.g. `http://127.0.0.1:4000` or `http://192.168.x.x:4000` for a Proxmox VM on the LAN). Tokens are stored in **localStorage** for development.
 
 **API** (local Express server):
 
