@@ -42,7 +42,8 @@ die_usage() {
 install_apt_basics() {
   echo "Ensuring git, build tools, curl…"
   $SUDO apt-get update -qq
-  $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential ca-certificates curl
+  # Use `env` so DEBIAN_FRONTEND works when SUDO is empty (root) and with `sudo` (no "command not found").
+  $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential ca-certificates curl
 }
 
 node_major() {
