@@ -66,3 +66,36 @@ export type UserFavoriteStoreRow = {
   store_id: number;
   created_at: string;
 };
+
+export type StoreProductPriceRow = {
+  id: number;
+  store_id: number;
+  canonical_product_id: number;
+  price: number;
+  source: string;
+  confidence_score: number | null;
+  updated_at: string;
+  created_at: string;
+};
+
+export type ReceiptRow = {
+  id: number;
+  user_id: UserId;
+  store_id: number | null;
+  purchase_date: string | null;
+  total: number | null;
+  image_url: string | null;
+  created_at: string;
+};
+
+export type ReceiptItemRow = {
+  id: number;
+  receipt_id: number;
+  raw_text: string;
+  canonical_product_id: number | null;
+  free_text: string | null;
+  quantity: string | null;
+  price: number | null;
+  confidence_score: number | null;
+  created_at: string;
+};

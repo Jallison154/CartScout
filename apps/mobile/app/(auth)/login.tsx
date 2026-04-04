@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Text, TextInput, View } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Screen } from '@/components/ui/Screen';
-import { colors, radius, spacing } from '@/constants/theme';
+import { colors } from '@/constants/theme';
+import { authFormStyles } from '@/styles/authFormStyles';
 import { formatApiErrorMessage } from '@/utils/apiMessage';
+import { isValidEmailFormat } from '@/utils/validation';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -16,6 +18,18 @@ export default function LoginScreen() {
   async function onSubmit() {
     setError(null);
     Keyboard.dismiss();
+    if (!email.trim()) {
+      setError('Enter your email.');
+      return;
+    }
+    if (!isValidEmailFormat(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+    if (!password) {
+      setError('Enter your password.');
+      return;
+    }
     setSubmitting(true);
     try {
       await signIn(email, password);
@@ -28,12 +42,12 @@ export default function LoginScreen() {
 
   return (
     <Screen scroll>
-      <Text style={styles.lead}>Sign in with your CartScout account.</Text>
+      <Text style={authFormStyles.lead}>Sign in with your CartScout account.</Text>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={authFormStyles.error}>{error}</Text> : null}
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Email</Text>
+      <View style={authFormStyles.field}>
+        <Text style={authFormStyles.label}>Email</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -41,26 +55,26 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           placeholder="you@example.com"
           placeholderTextColor={colors.tertiaryLabel}
-          style={styles.input}
+          style={authFormStyles.input}
           textContentType="username"
           value={email}
         />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Password</Text>
+      <View style={authFormStyles.field}>
+        <Text style={authFormStyles.label}>Password</Text>
         <TextInput
           onChangeText={setPassword}
           placeholder="••••••••"
           placeholderTextColor={colors.tertiaryLabel}
           secureTextEntry
-          style={styles.input}
+          style={authFormStyles.input}
           textContentType="password"
           value={password}
         />
       </View>
 
-      <View style={styles.cta}>
+      <View style={authFormStyles.cta}>
         <PrimaryButton
           disabled={!email.trim() || !password}
           loading={submitting}
@@ -72,40 +86,3 @@ export default function LoginScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  lead: {
-    fontSize: 17,
-    color: colors.label,
-    marginBottom: spacing.md,
-    lineHeight: 22,
-  },
-  error: {
-    fontSize: 15,
-    color: colors.systemRed,
-    marginBottom: spacing.md,
-    lineHeight: 20,
-  },
-  field: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.secondaryLabel,
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
-  },
-  input: {
-    minHeight: 48,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    fontSize: 17,
-    color: colors.label,
-    backgroundColor: colors.systemGray6,
-  },
-  cta: {
-    marginTop: spacing.lg,
-  },
-});

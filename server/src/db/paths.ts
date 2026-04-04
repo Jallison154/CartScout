@@ -41,3 +41,8 @@ export function resolveDatabasePath(): string {
   }
   return join(getServerRoot(), raw);
 }
+
+/** Uploaded receipt images (created on demand). */
+export function getReceiptsUploadDir(): string {
+  return join(getServerRoot(), 'data', 'receipts');
+}

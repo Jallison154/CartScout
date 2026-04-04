@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../../../middleware/auth.middleware.js';
 import { validateBody } from '../../../middleware/validate.middleware.js';
+import * as listOptimizeService from '../../../services/listOptimize.service.js';
 import * as listService from '../../../services/list.service.js';
 import { parsePositiveIntParam } from '../../../utils/params.js';
 
@@ -74,6 +75,16 @@ listsRouter.post('/', validateBody(createListSchema), (req, res, next) => {
     const body = req.body as z.infer<typeof createListSchema>;
     const data = listService.createListForUser(req.user!.id, body);
     res.status(201).json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+listsRouter.get('/:listId/optimize', (req, res, next) => {
+  try {
+    const listId = parsePositiveIntParam(req.params.listId, 'list id');
+    const data = listOptimizeService.optimizeListByStore(listId, req.user!.id);
+    res.status(200).json({ data });
   } catch (err) {
     next(err);
   }

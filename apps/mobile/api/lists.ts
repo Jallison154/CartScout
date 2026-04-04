@@ -1,4 +1,5 @@
 import { authDelete, authGetJson, authPatchJson, authPostJson } from '@/api/authorized';
+import type { ListOptimizationResult } from '@/types/listOptimization';
 import type { GroceryList, ListItem } from '@/types/lists';
 
 type Data<T> = { data: T };
@@ -22,6 +23,15 @@ export async function fetchListDetail(listId: number): Promise<{
 }> {
   const res = await authGetJson<Data<{ list: GroceryList; items: ListItem[] }>>(
     `/api/v1/lists/${listId}`,
+  );
+  return res.data;
+}
+
+export async function fetchListOptimization(
+  listId: number,
+): Promise<ListOptimizationResult> {
+  const res = await authGetJson<Data<ListOptimizationResult>>(
+    `/api/v1/lists/${listId}/optimize`,
   );
   return res.data;
 }

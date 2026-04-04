@@ -6,4 +6,5 @@ export { ApiError, isApiError } from './errors';
 export { apiGetJson, apiPostJson, parseResponse } from './http';
 export * from './lists';
 export * from './products';
+export * from './receipts';
 export * from './stores';

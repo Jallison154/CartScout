@@ -18,6 +18,22 @@ export default function ListsStackLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Lists', headerLargeTitle: true }} />
       <Stack.Screen name="[listId]" options={{ title: 'List' }} />
+      <Stack.Screen
+        name="scan"
+        options={{
+          title: 'Scan barcode',
+          presentation: 'modal',
+          headerLargeTitle: false,
+        }}
+      />
+      <Stack.Screen
+        name="import-receipt"
+        options={{
+          title: 'Import receipt',
+          presentation: 'modal',
+          headerLargeTitle: false,
+        }}
+      />
     </Stack>
   );
 }

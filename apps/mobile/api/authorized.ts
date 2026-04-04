@@ -85,3 +85,52 @@ export async function authDelete(path: string): Promise<void> {
   }
   await parseResponse<Record<string, never>>(res);
 }
+
+/**
+ * POST multipart (e.g. receipt upload). Pass a factory so the body can be rebuilt after a 401 refresh.
+ */
+export async function authPostFormData<TResponse>(
+  path: string,
+  buildFormData: () => FormData,
+): Promise<TResponse> {
+  async function doPost(): Promise<Response> {
+    const token = await tokenStorage.getAccessToken();
+    if (!token) {
+      throw new ApiError(401, 'Not signed in', 'AUTH_REQUIRED');
+    }
+    const headers = new Headers();
+    headers.set('Accept', 'application/json');
+    headers.set('Authorization', `Bearer ${token}`);
+    return fetch(buildApiUrl(path), {
+      method: 'POST',
+      headers,
+      body: buildFormData(),
+    });
+  }
+
+  let res = await doPost();
+
+  if (res.status === 401) {
+    const refresh = await tokenStorage.getRefreshToken();
+    if (refresh) {
+      try {
+        const session = await refreshRequest(refresh);
+        await tokenStorage.saveTokens(
+          session.tokens.accessToken,
+          session.tokens.refreshToken,
+        );
+        res = await doPost();
+      } catch {
+        await tokenStorage.clearTokens();
+        notifySessionInvalidated();
+      }
+    }
+  }
+
+  if (res.status === 401) {
+    await tokenStorage.clearTokens();
+    notifySessionInvalidated();
+  }
+
+  return parseResponse<TResponse>(res);
+}

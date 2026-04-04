@@ -2,17 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 import { useCallback, useLayoutEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createList, fetchLists } from '@/api/lists';
+import { CenteredLoading } from '@/components/ui/CenteredLoading';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorBanner } from '@/components/ui/ErrorBanner';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SecondaryButton } from '@/components/ui/SecondaryButton';
 import { colors, radius, spacing, touchTargetMin } from '@/constants/theme';
@@ -52,22 +46,33 @@ export default function ListsIndexScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
-          accessibilityLabel="New list"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={() => {
-            setNewName('');
-            setCreateError(null);
-            setModalOpen(true);
-          }}
-          style={({ pressed }) => [styles.headerBtn, pressed && styles.headerBtnPressed]}
-        >
-          <Ionicons name="add" size={28} color={colors.systemBlue} />
-        </Pressable>
+        <View style={styles.headerRightGroup}>
+          <Pressable
+            accessibilityLabel="Import receipt"
+            accessibilityRole="button"
+            hitSlop={12}
+            onPress={() => router.push('/lists/import-receipt')}
+            style={({ pressed }) => [styles.headerBtn, pressed && styles.headerBtnPressed]}
+          >
+            <Ionicons name="document-text-outline" size={26} color={colors.systemBlue} />
+          </Pressable>
+          <Pressable
+            accessibilityLabel="New list"
+            accessibilityRole="button"
+            hitSlop={12}
+            onPress={() => {
+              setNewName('');
+              setCreateError(null);
+              setModalOpen(true);
+            }}
+            style={({ pressed }) => [styles.headerBtn, pressed && styles.headerBtnPressed]}
+          >
+            <Ionicons name="add" size={28} color={colors.systemBlue} />
+          </Pressable>
+        </View>
       ),
     });
-  }, [navigation]);
+  }, [navigation, router]);
 
   async function submitNewList() {
     const name = newName.trim();
@@ -91,36 +96,28 @@ export default function ListsIndexScreen() {
   }
 
   if (loading && lists.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.systemBlue} size="large" />
-      </View>
-    );
+    return <CenteredLoading accessibilityLabel="Loading lists" message="Loading lists…" />;
   }
 
   return (
     <View style={styles.root}>
-      {error ? (
-        <View style={styles.banner}>
-          <Text style={styles.bannerText}>{error}</Text>
-          <SecondaryButton onPress={() => void load()}>Retry</SecondaryButton>
-        </View>
-      ) : null}
+      {error ? <ErrorBanner message={error} onRetry={() => void load()} /> : null}
 
       <FlatList
         contentContainerStyle={lists.length === 0 ? styles.emptyList : styles.listContent}
         data={lists}
         keyExtractor={(item) => String(item.id)}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No lists yet</Text>
-            <Text style={styles.emptyBody}>Tap + to create your first grocery list.</Text>
-          </View>
+          <EmptyState
+            body="Tap + in the header to create your first grocery list, or import a receipt."
+            title="No lists yet"
+          />
         }
         refreshing={loading}
         onRefresh={() => void load()}
         renderItem={({ item }) => (
           <Pressable
+            accessibilityLabel={`Open list ${item.name}`}
             accessibilityRole="button"
             onPress={() => router.push(`/lists/${item.id}`)}
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
@@ -137,9 +134,12 @@ export default function ListsIndexScreen() {
             <Text style={styles.modalTitle}>New list</Text>
             <TextInput
               autoFocus
+              maxLength={200}
               onChangeText={setNewName}
+              onSubmitEditing={() => void submitNewList()}
               placeholder="List name"
               placeholderTextColor={colors.tertiaryLabel}
+              returnKeyType="done"
               style={styles.modalInput}
               value={newName}
             />
@@ -162,23 +162,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.groupedBackground,
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.groupedBackground,
-  },
-  banner: {
-    padding: spacing.md,
-    gap: spacing.sm,
-    backgroundColor: colors.background,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator,
-  },
-  bannerText: {
-    color: colors.systemRed,
-    fontSize: 15,
   },
   listContent: {
     paddingVertical: spacing.sm,
@@ -204,26 +187,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.label,
   },
-  empty: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+  headerRightGroup: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.label,
-    marginBottom: spacing.sm,
-  },
-  emptyBody: {
-    fontSize: 16,
-    color: colors.secondaryLabel,
-    textAlign: 'center',
-    lineHeight: 22,
+    gap: 4,
+    marginRight: 4,
   },
   headerBtn: {
-    marginRight: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },

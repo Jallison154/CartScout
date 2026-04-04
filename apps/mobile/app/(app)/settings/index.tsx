@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { FavoriteStoresSection } from '@/components/settings/FavoriteStoresSection';
 import { Screen } from '@/components/ui/Screen';
 import { colors, spacing, touchTargetMin } from '@/constants/theme';
 import { useApiBaseUrl } from '@/hooks/useApiBaseUrl';
@@ -11,7 +12,7 @@ export default function SettingsScreen() {
   const version = Constants.expoConfig?.version ?? '—';
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} scroll>
       <View style={styles.container}>
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Account</Text>
@@ -24,6 +25,8 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        <FavoriteStoresSection />
 
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Connection</Text>
@@ -66,10 +69,8 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: colors.groupedBackground,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
   },
   section: {
     marginBottom: spacing.lg,

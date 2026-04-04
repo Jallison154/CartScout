@@ -9,6 +9,15 @@ export function findCanonicalProductById(id: number): CanonicalProductRow | unde
     .get(id) as CanonicalProductRow | undefined;
 }
 
+/** Exact match on `barcode` (case-sensitive, as stored). */
+export function findCanonicalProductByBarcode(barcode: string): CanonicalProductRow | undefined {
+  return getDb()
+    .prepare(
+      `SELECT ${SELECT_COLUMNS} FROM canonical_products WHERE barcode = ? LIMIT 1`,
+    )
+    .get(barcode) as CanonicalProductRow | undefined;
+}
+
 export function findCanonicalProductsByIds(ids: number[]): CanonicalProductRow[] {
   if (ids.length === 0) {
     return [];
