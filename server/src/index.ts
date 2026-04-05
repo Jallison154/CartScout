@@ -31,5 +31,9 @@ app.listen(port, host, () => {
   const webAbs = webRaw ? resolve(webRaw) : '';
   if (webAbs && existsSync(webAbs)) {
     console.info(`[cartscout] web UI: ${webAbs} (open http://127.0.0.1:${port}/ )`);
+  } else if (webRaw) {
+    console.warn(
+      `[cartscout] WEB_UI_DIST is set but directory not found: ${webAbs} — fix path or build apps/web; GET / will 404`,
+    );
   }
 });
