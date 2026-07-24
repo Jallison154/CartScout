@@ -7,6 +7,8 @@ type ScreenProps = PropsWithChildren<{
   scroll?: boolean;
   /** Safe-area edges; default top+bottom. Use `['top']` above a tab bar. */
   edges?: readonly Edge[];
+  /** Transparent shell for branded washes behind content. */
+  transparent?: boolean;
 }>;
 
 const contentPadding = {
@@ -18,9 +20,17 @@ const contentPadding = {
 /**
  * iPhone-first screen wrapper: respects safe areas and comfortable horizontal margins.
  */
-export function Screen({ children, scroll, edges = ['top', 'bottom'] }: ScreenProps) {
+export function Screen({
+  children,
+  scroll,
+  edges = ['top', 'bottom'],
+  transparent,
+}: ScreenProps) {
   return (
-    <SafeAreaView style={styles.safe} edges={edges}>
+    <SafeAreaView
+      style={[styles.safe, transparent && styles.safeTransparent]}
+      edges={edges}
+    >
       {scroll ? (
         <ScrollView
           contentContainerStyle={[styles.scrollContent, contentPadding]}
@@ -40,6 +50,9 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  safeTransparent: {
+    backgroundColor: 'transparent',
   },
   fill: {
     flex: 1,

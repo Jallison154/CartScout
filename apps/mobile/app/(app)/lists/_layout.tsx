@@ -7,7 +7,7 @@ export default function ListsStackLayout() {
     <Stack
       screenOptions={{
         headerLargeTitle: true,
-        headerTintColor: colors.systemBlue,
+        headerTintColor: colors.accent,
         headerShadowVisible: false,
         headerTitleStyle: { fontWeight: '600' },
         headerLargeTitleStyle: { fontWeight: '700' },

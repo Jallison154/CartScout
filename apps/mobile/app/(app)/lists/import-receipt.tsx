@@ -240,9 +240,12 @@ export default function ImportReceiptScreen() {
         {step === 'source' ? (
           <View style={[styles.sourceBody, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
             <Text style={styles.sourceTitle}>Add items from a receipt</Text>
+            <View style={styles.demoBadge}>
+              <Text style={styles.demoBadgeText}>Demo mode</Text>
+            </View>
             <Text style={styles.sourceCopy}>
-              Take a clear photo or choose an existing image. We&apos;ll suggest line items you can
-              edit before adding to a list.
+              Receipt reading is simulated for now—any photo returns sample grocery lines so you can
+              try the review flow. Edit or turn off lines before adding them to a list.
             </Text>
             <View style={styles.sourceActions}>
               <Pressable
@@ -265,7 +268,7 @@ export default function ImportReceiptScreen() {
                 ]}
               >
                 <View style={styles.btnRow}>
-                  <Ionicons name="images-outline" size={22} color={colors.systemBlue} />
+                  <Ionicons name="images-outline" size={22} color={colors.accent} />
                   <Text style={styles.secondaryOutlineLabel}>Choose from library</Text>
                 </View>
               </Pressable>
@@ -287,7 +290,8 @@ export default function ImportReceiptScreen() {
             showsVerticalScrollIndicator={false}
           >
             <Text style={styles.reviewIntro}>
-              Review detected lines. Turn off items you don&apos;t want, then choose where to add them.
+              Demo lines from sample OCR. Turn off items you don&apos;t want, then choose where to
+              add them.
             </Text>
 
             {listsLoadError ? (
@@ -308,7 +312,7 @@ export default function ImportReceiptScreen() {
                       accessibilityLabel={`Include ${line.name || 'item'}`}
                       ios_backgroundColor={colors.systemGray6}
                       onValueChange={(v) => updateLine(line.itemId, { included: v })}
-                      trackColor={{ false: colors.systemGray6, true: '#34C759' }}
+                      trackColor={{ false: colors.systemGray6, true: colors.savings }}
                       value={line.included}
                     />
                   </View>
@@ -452,7 +456,7 @@ export default function ImportReceiptScreen() {
                 >
                   <Text style={styles.listPickRowText}>{item.name}</Text>
                   {item.id === existingListId ? (
-                    <Ionicons name="checkmark" size={22} color={colors.systemBlue} />
+                    <Ionicons name="checkmark" size={22} color={colors.accent} />
                   ) : null}
                 </Pressable>
               )}
@@ -479,7 +483,7 @@ const styles = StyleSheet.create({
   },
   headerBtnLabel: {
     fontSize: 17,
-    color: colors.systemBlue,
+    color: colors.accent,
   },
   sourceBody: {
     flex: 1,
@@ -491,6 +495,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.label,
     marginBottom: spacing.sm,
+  },
+  demoBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(166, 124, 0, 0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
+  },
+  demoBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.amber,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   sourceCopy: {
     fontSize: 16,
@@ -504,7 +523,7 @@ const styles = StyleSheet.create({
   primaryPressable: {
     minHeight: touchTargetMin,
     borderRadius: radius.md,
-    backgroundColor: colors.systemBlue,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -517,7 +536,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: colors.systemBlue,
+    borderColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -528,7 +547,7 @@ const styles = StyleSheet.create({
   secondaryOutlineLabel: {
     fontSize: 17,
     fontWeight: '600',
-    color: colors.systemBlue,
+    color: colors.accent,
   },
   btnRow: {
     flexDirection: 'row',

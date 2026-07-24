@@ -42,7 +42,9 @@ export default function RegisterScreen() {
 
   return (
     <Screen scroll>
-      <Text style={authFormStyles.lead}>Create an account to save lists and compare stores.</Text>
+      <Text style={authFormStyles.lead}>
+        Create an account to save lists and find the cheapest way to shop.
+      </Text>
 
       {error ? <Text style={authFormStyles.error}>{error}</Text> : null}
 

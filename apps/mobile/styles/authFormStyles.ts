@@ -31,7 +31,9 @@ export const authFormStyles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     fontSize: 17,
     color: colors.label,
-    backgroundColor: colors.systemGray6,
+    backgroundColor: colors.surfaceTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator,
   },
   cta: {
     marginTop: spacing.lg,

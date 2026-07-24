@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 import { useCallback, useLayoutEffect, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { createList, fetchLists } from '@/api/lists';
+import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { createList, deleteList, fetchLists } from '@/api/lists';
 import { CenteredLoading } from '@/components/ui/CenteredLoading';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
@@ -54,7 +54,7 @@ export default function ListsIndexScreen() {
             onPress={() => router.push('/lists/import-receipt')}
             style={({ pressed }) => [styles.headerBtn, pressed && styles.headerBtnPressed]}
           >
-            <Ionicons name="document-text-outline" size={26} color={colors.systemBlue} />
+            <Ionicons name="document-text-outline" size={26} color={colors.accent} />
           </Pressable>
           <Pressable
             accessibilityLabel="New list"
@@ -67,7 +67,7 @@ export default function ListsIndexScreen() {
             }}
             style={({ pressed }) => [styles.headerBtn, pressed && styles.headerBtnPressed]}
           >
-            <Ionicons name="add" size={28} color={colors.systemBlue} />
+            <Ionicons name="add" size={28} color={colors.accent} />
           </Pressable>
         </View>
       ),
@@ -95,6 +95,26 @@ export default function ListsIndexScreen() {
     }
   }
 
+  function confirmDeleteList(list: GroceryList) {
+    Alert.alert('Delete list?', `“${list.name}” and its items will be removed.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => void removeList(list),
+      },
+    ]);
+  }
+
+  async function removeList(list: GroceryList) {
+    try {
+      await deleteList(list.id);
+      setLists((prev) => prev.filter((l) => l.id !== list.id));
+    } catch (e) {
+      Alert.alert('Could not delete', formatApiErrorMessage(e));
+    }
+  }
+
   if (loading && lists.length === 0) {
     return <CenteredLoading accessibilityLabel="Loading lists" message="Loading lists…" />;
   }
@@ -109,7 +129,7 @@ export default function ListsIndexScreen() {
         keyExtractor={(item) => String(item.id)}
         ListEmptyComponent={
           <EmptyState
-            body="Tap + in the header to create your first grocery list, or import a receipt."
+            body="Tap + to create a list, or import a receipt. Match items to the catalog to unlock store savings."
             title="No lists yet"
           />
         }
@@ -117,8 +137,9 @@ export default function ListsIndexScreen() {
         onRefresh={() => void load()}
         renderItem={({ item }) => (
           <Pressable
-            accessibilityLabel={`Open list ${item.name}`}
+            accessibilityLabel={`Open list ${item.name}. Long press for options.`}
             accessibilityRole="button"
+            onLongPress={() => confirmDeleteList(item)}
             onPress={() => router.push(`/lists/${item.id}`)}
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           >
@@ -185,6 +206,7 @@ const styles = StyleSheet.create({
   rowTitle: {
     flex: 1,
     fontSize: 17,
+    fontWeight: '500',
     color: colors.label,
   },
   headerRightGroup: {

@@ -42,7 +42,7 @@ export default function LoginScreen() {
 
   return (
     <Screen scroll>
-      <Text style={authFormStyles.lead}>Sign in with your CartScout account.</Text>
+      <Text style={authFormStyles.lead}>Welcome back — pick up where you left off.</Text>
 
       {error ? <Text style={authFormStyles.error}>{error}</Text> : null}
 

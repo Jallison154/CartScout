@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   label: {
-    color: colors.systemBlue,
+    color: colors.accent,
     fontSize: 17,
     fontWeight: '400',
   },

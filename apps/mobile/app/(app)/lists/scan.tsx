@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   headerBtnLabel: {
     fontSize: 17,
-    color: colors.systemBlue,
+    color: colors.accent,
   },
   permissionBody: {
     flex: 1,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   settingsLinkText: {
     fontSize: 17,
-    color: colors.systemBlue,
+    color: colors.accent,
   },
   cameraWrap: {
     flex: 1,
@@ -496,6 +496,6 @@ const styles = StyleSheet.create({
   },
   secondaryBtnLabel: {
     fontSize: 17,
-    color: colors.systemBlue,
+    color: colors.accent,
   },
 });

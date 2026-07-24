@@ -99,7 +99,7 @@ export function FavoriteStoresSection() {
       <View style={styles.card}>
         {loading ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator accessibilityLabel="Loading stores" color={colors.systemBlue} />
+            <ActivityIndicator accessibilityLabel="Loading stores" color={colors.accent} />
             <Text style={styles.loadingCaption}>Loading stores…</Text>
           </View>
         ) : (
@@ -126,7 +126,7 @@ export function FavoriteStoresSection() {
                 onValueChange={(value) => void toggleFavorite(store.id, value)}
                 trackColor={{
                   false: colors.systemGray6,
-                  true: '#34C759',
+                  true: colors.savings,
                 }}
                 value={favoriteIds.has(store.id)}
               />
@@ -136,7 +136,7 @@ export function FavoriteStoresSection() {
       </View>
       {offlineStores ? (
         <Text style={styles.hint}>
-          Couldn&apos;t load stores from the server. Showing Walmart and Costco. Toggles
+          Couldn&apos;t load stores from the server. Showing seed stores. Toggles
           save when you&apos;re back online.
         </Text>
       ) : favoritesLoadFailed ? (

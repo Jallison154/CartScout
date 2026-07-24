@@ -1,20 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap');
+
 :root {
-  --bg: #f2f2f7;
+  --bg: #eaf1ec;
+  --bg-deep: #c5dccf;
   --surface: #ffffff;
-  --text: #000000;
-  --muted: rgba(60, 60, 67, 0.6);
-  --border: rgba(60, 60, 67, 0.2);
-  --blue: #007aff;
-  --red: #ff3b30;
-  --green: #34c759;
-  --radius: 10px;
+  --surface-tint: #f3f8f5;
+  --text: #142019;
+  --muted: #5a6b60;
+  --faint: #8a9a90;
+  --border: rgba(20, 32, 25, 0.14);
+  --accent: #0f5c45;
+  --accent-soft: rgba(15, 92, 69, 0.1);
+  --red: #c23b2e;
+  --savings: #1f7a4d;
+  --amber: #a67c00;
+  --radius: 12px;
   --touch: 44px;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  --font-ui: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  font-family: var(--font-ui);
   line-height: 1.45;
   color: var(--text);
   background: var(--bg);
@@ -29,6 +33,10 @@
 body {
   margin: 0;
   min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, var(--bg-deep), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 20%, rgba(159, 196, 176, 0.45), transparent 50%),
+    var(--bg);
 }
 
 #root {
@@ -36,7 +44,7 @@ body {
 }
 
 a {
-  color: var(--blue);
+  color: var(--accent);
   text-decoration: none;
 }
 a:hover {
@@ -56,7 +64,8 @@ a:hover {
 }
 
 .topbar {
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -74,8 +83,11 @@ a:hover {
 }
 
 .logo {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
+  color: var(--accent);
+  letter-spacing: -0.02em;
 }
 
 .nav-main {
@@ -90,14 +102,15 @@ a:hover {
   padding: 0.35rem 0.5rem;
   border-radius: 6px;
   font-size: 0.95rem;
+  font-weight: 500;
 }
 .nav-link:hover {
   text-decoration: none;
-  background: var(--bg);
+  background: var(--accent-soft);
   color: var(--text);
 }
 .nav-link--active {
-  color: var(--blue);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -116,9 +129,12 @@ a:hover {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+  color: var(--text);
 }
 
 h2 {
@@ -156,8 +172,9 @@ h2 {
 .btn {
   min-height: var(--touch);
   padding: 0 1rem;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
+  font-family: var(--font-ui);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -170,14 +187,22 @@ h2 {
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--blue);
+  background: var(--accent);
   color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
 }
 .btn-ghost {
   background: transparent;
-  color: var(--blue);
+  color: var(--accent);
   min-height: auto;
   padding: 0.35rem 0.5rem;
+}
+.btn-outline {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
 }
 .btn-danger {
   background: transparent;
@@ -206,8 +231,10 @@ input[type='password'] {
   padding: 0 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--border);
+  font-family: var(--font-ui);
   font-size: 1rem;
   background: var(--surface);
+  color: var(--text);
 }
 
 .banner-error {
@@ -219,6 +246,19 @@ input[type='password'] {
   font-size: 0.95rem;
 }
 
+.banner-demo {
+  display: inline-block;
+  background: rgba(166, 124, 0, 0.14);
+  color: var(--amber);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
 .list-link {
   display: block;
   padding: 0.85rem 0;
@@ -228,7 +268,7 @@ input[type='password'] {
 }
 .list-link:hover {
   text-decoration: none;
-  color: var(--blue);
+  color: var(--accent);
 }
 
 .suggestions {
@@ -248,13 +288,14 @@ input[type='password'] {
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   cursor: pointer;
+  font-family: var(--font-ui);
   font-size: 0.95rem;
 }
 .suggestion-row:last-child {
   border-bottom: none;
 }
 .suggestion-row:hover {
-  background: var(--bg);
+  background: var(--surface-tint);
 }
 
 .price-row {
@@ -279,6 +320,10 @@ input[type='password'] {
 .optim-value {
   font-weight: 600;
 }
+.optim-savings {
+  color: var(--savings);
+  font-weight: 700;
+}
 
 .plan-store {
   margin-top: 0.85rem;
@@ -299,6 +344,7 @@ input[type='password'] {
   margin-top: 0.2rem;
   width: 1.1rem;
   height: 1.1rem;
+  accent-color: var(--accent);
 }
 
 .item-done {
@@ -313,8 +359,70 @@ input[type='password'] {
   align-items: center;
 }
 
+.landing {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.landing-mark {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 8vw, 3.5rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0 0 0.75rem;
+}
+
+.landing-tagline {
+  font-size: 1.25rem;
+  color: var(--text);
+  margin: 0 0 2rem;
+  max-width: 22rem;
+  line-height: 1.4;
+}
+
+.home-greeting {
+  color: var(--muted);
+  margin: -0.35rem 0 1.25rem;
+  font-size: 1.05rem;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.75rem;
+}
+
+.home-tip {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  background: rgba(166, 124, 0, 0.08);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
 @media (min-width: 640px) {
   h1 {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
 }

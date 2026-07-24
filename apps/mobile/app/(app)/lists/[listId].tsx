@@ -8,6 +8,7 @@ import {
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -19,10 +20,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   createListItem,
+  deleteList,
   deleteListItem,
   fetchListDetail,
   fetchListOptimization,
   patchListItem,
+  renameList,
 } from '@/api/lists';
 import { fetchProductStorePrices, searchProducts } from '@/api/products';
 import { CenteredError } from '@/components/ui/CenteredError';
@@ -30,6 +33,7 @@ import { CenteredLoading } from '@/components/ui/CenteredLoading';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { SecondaryButton } from '@/components/ui/SecondaryButton';
 import { colors, radius, spacing, touchTargetMin } from '@/constants/theme';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import type { ListOptimizationResult } from '@/types/listOptimization';
@@ -68,8 +72,6 @@ type ItemPriceState =
   | { status: 'ready'; prices: StoreProductPrice[] }
   | { status: 'error'; prices: []; errorMessage: string };
 
-const SAVINGS_GREEN = '#34C759';
-
 type ListOptimizationPanelProps = {
   loading: boolean;
   error: string | null;
@@ -92,7 +94,7 @@ function ListOptimizationPanel({
 
         {loading && !data ? (
           <View style={optimizeStyles.cardLoading}>
-            <ActivityIndicator color={colors.systemBlue} size="small" />
+            <ActivityIndicator color={colors.accent} size="small" />
             <Text style={optimizeStyles.cardMuted}>Comparing stores…</Text>
           </View>
         ) : null}
@@ -286,7 +288,7 @@ const optimizeStyles = StyleSheet.create({
     lineHeight: 21,
   },
   metricSavingsPositive: {
-    color: SAVINGS_GREEN,
+    color: colors.savings,
   },
   metricHint: {
     marginTop: 4,
@@ -388,7 +390,7 @@ function ListItemStorePrices({ state }: { state: ItemPriceState | undefined }) {
   if (state === undefined || state.status === 'loading') {
     return (
       <View style={[styles.priceSection, styles.priceLoadingRow]}>
-        <ActivityIndicator color={colors.systemBlue} size="small" />
+        <ActivityIndicator color={colors.accent} size="small" />
         <Text style={styles.priceStatusText}>Loading store prices…</Text>
       </View>
     );
@@ -455,6 +457,9 @@ export default function ListDetailScreen() {
   const [optimizeLoading, setOptimizeLoading] = useState(false);
   const [optimizeError, setOptimizeError] = useState<string | null>(null);
   const [planExpanded, setPlanExpanded] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameDraft, setRenameDraft] = useState('');
+  const [renaming, setRenaming] = useState(false);
 
   const refreshOptimization = useCallback(async () => {
     if (!Number.isInteger(listId) || listId < 1) {
@@ -626,6 +631,66 @@ export default function ListDetailScreen() {
     }, [load]),
   );
 
+  const openListOptions = useCallback(() => {
+    if (!Number.isInteger(listId) || listId < 1) {
+      return;
+    }
+    Alert.alert(listName ?? 'List', undefined, [
+      {
+        text: 'Rename',
+        onPress: () => {
+          setRenameDraft(listName ?? '');
+          setRenameOpen(true);
+        },
+      },
+      {
+        text: 'Delete list',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            'Delete list?',
+            `“${listName ?? 'This list'}” and its items will be removed.`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete',
+                style: 'destructive',
+                onPress: () => {
+                  void (async () => {
+                    try {
+                      await deleteList(listId);
+                      router.back();
+                    } catch (e) {
+                      Alert.alert('Could not delete', formatApiErrorMessage(e));
+                    }
+                  })();
+                },
+              },
+            ],
+          );
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, [listId, listName, router]);
+
+  async function submitRename() {
+    const next = renameDraft.trim();
+    if (!next) {
+      return;
+    }
+    setRenaming(true);
+    try {
+      const list = await renameList(listId, next);
+      setListName(list.name);
+      setRenameOpen(false);
+    } catch (e) {
+      Alert.alert('Could not rename', formatApiErrorMessage(e));
+    } finally {
+      setRenaming(false);
+    }
+  }
+
   useLayoutEffect(() => {
     const listIdOk = Number.isInteger(listId) && listId >= 1;
     navigation.setOptions({
@@ -633,23 +698,33 @@ export default function ListDetailScreen() {
       headerRight:
         listIdOk
           ? () => (
-              <Pressable
-                accessibilityLabel="Scan barcode to add item"
-                hitSlop={10}
-                onPress={() =>
-                  router.push({
-                    pathname: '/lists/scan',
-                    params: { listId: String(listId) },
-                  })
-                }
-                style={{ paddingLeft: spacing.sm, paddingRight: 4 }}
-              >
-                <Ionicons name="barcode-outline" size={26} color={colors.systemBlue} />
-              </Pressable>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Pressable
+                  accessibilityLabel="Scan barcode to add item"
+                  hitSlop={10}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/lists/scan',
+                      params: { listId: String(listId) },
+                    })
+                  }
+                  style={{ paddingHorizontal: 6 }}
+                >
+                  <Ionicons name="barcode-outline" size={26} color={colors.accent} />
+                </Pressable>
+                <Pressable
+                  accessibilityLabel="List options"
+                  hitSlop={10}
+                  onPress={openListOptions}
+                  style={{ paddingLeft: 6, paddingRight: 4 }}
+                >
+                  <Ionicons name="ellipsis-horizontal-circle-outline" size={26} color={colors.accent} />
+                </Pressable>
+              </View>
             )
           : undefined,
     });
-  }, [listId, listName, navigation, router]);
+  }, [listId, listName, navigation, openListOptions, router]);
 
   async function toggleItem(item: ListItem) {
     const next = !item.checked;
@@ -767,7 +842,7 @@ export default function ListDetailScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            body="Type in the bar below or tap the barcode icon to add your first item."
+            body="Add items below or scan a barcode. Catalog matches unlock store prices and savings."
             title="No items yet"
           />
         }
@@ -791,7 +866,7 @@ export default function ListDetailScreen() {
                   <Ionicons
                     name={item.checked ? 'checkmark-circle' : 'ellipse-outline'}
                     size={26}
-                    color={item.checked ? colors.systemBlue : colors.tertiaryLabel}
+                    color={item.checked ? colors.accent : colors.tertiaryLabel}
                   />
                 </Pressable>
                 <View style={styles.itemMain}>
@@ -831,7 +906,7 @@ export default function ListDetailScreen() {
         <View style={styles.suggestionsCard}>
           {searchLoading && suggestions.length === 0 ? (
             <View style={styles.suggestionsLoading}>
-              <ActivityIndicator color={colors.systemBlue} />
+              <ActivityIndicator color={colors.accent} />
             </View>
           ) : (
             <ScrollView
@@ -882,6 +957,39 @@ export default function ListDetailScreen() {
           </PrimaryButton>
         </View>
       </View>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={renameOpen}
+        onRequestClose={() => setRenameOpen(false)}
+      >
+        <Pressable style={styles.renameOverlay} onPress={() => setRenameOpen(false)}>
+          <Pressable style={styles.renameCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.renameTitle}>Rename list</Text>
+            <TextInput
+              autoFocus
+              maxLength={200}
+              onChangeText={setRenameDraft}
+              onSubmitEditing={() => void submitRename()}
+              placeholder="List name"
+              placeholderTextColor={colors.tertiaryLabel}
+              returnKeyType="done"
+              style={styles.renameInput}
+              value={renameDraft}
+            />
+            <PrimaryButton
+              disabled={!renameDraft.trim()}
+              loading={renaming}
+              onPress={() => void submitRename()}
+            >
+              Save
+            </PrimaryButton>
+            <View style={{ height: spacing.sm }} />
+            <SecondaryButton onPress={() => setRenameOpen(false)}>Cancel</SecondaryButton>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -897,6 +1005,32 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
+  },
+  renameOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(20, 32, 25, 0.4)',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  renameCard: {
+    backgroundColor: colors.background,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+  renameTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: spacing.md,
+    color: colors.label,
+  },
+  renameInput: {
+    borderRadius: radius.sm,
+    backgroundColor: colors.systemGray6,
+    paddingHorizontal: spacing.md,
+    minHeight: 48,
+    fontSize: 17,
+    color: colors.label,
+    marginBottom: spacing.md,
   },
   searchErrorBanner: {
     marginHorizontal: spacing.lg,

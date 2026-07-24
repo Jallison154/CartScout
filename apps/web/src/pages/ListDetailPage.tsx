@@ -119,7 +119,9 @@ function OptimizationSection({
       </div>
       <div className="optim-block">
         <div className="optim-label">You save</div>
-        <div className="optim-value" style={{ color: data.savings != null && data.savings > 0 ? 'var(--green)' : undefined }}>
+        <div
+          className={`optim-value${data.savings != null && data.savings > 0 ? ' optim-savings' : ''}`}
+        >
           {data.savings != null ? formatUsd(data.savings) : '—'}
         </div>
       </div>

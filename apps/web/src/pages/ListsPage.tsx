@@ -88,7 +88,9 @@ export function ListsPage() {
       {loading ? (
         <p className="muted">Loading lists…</p>
       ) : lists.length === 0 ? (
-        <p className="muted">No lists yet. Add a name above to create one.</p>
+        <p className="muted">
+          No lists yet. Create one above, then match items to the catalog to unlock store savings.
+        </p>
       ) : (
         <div className="card">
           {lists.map((l) => (

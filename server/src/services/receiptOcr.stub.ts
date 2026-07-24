@@ -1,5 +1,6 @@
 /**
- * Stub “OCR” — fixed plausible lines so clients can build flows before real OCR exists.
+ * Demo/stub OCR — always returns the same plausible lines regardless of the image.
+ * Clients should label this as demo mode until a real OCR provider is wired in.
  */
 export type MockReceiptLineInput = {
   raw_text: string;

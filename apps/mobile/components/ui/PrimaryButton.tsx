@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   base: {
     minHeight: touchTargetMin,
     borderRadius: radius.md,
-    backgroundColor: colors.systemBlue,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,

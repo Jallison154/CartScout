@@ -17,6 +17,18 @@ export async function createList(name: string): Promise<GroceryList> {
   return res.data.list;
 }
 
+export async function renameList(listId: number, name: string): Promise<GroceryList> {
+  const res = await authPatchJson<Data<{ list: GroceryList }>, { name: string }>(
+    `/api/v1/lists/${listId}`,
+    { name },
+  );
+  return res.data.list;
+}
+
+export async function deleteList(listId: number): Promise<void> {
+  await authDelete(`/api/v1/lists/${listId}`);
+}
+
 export async function fetchListDetail(listId: number): Promise<{
   list: GroceryList;
   items: ListItem[];

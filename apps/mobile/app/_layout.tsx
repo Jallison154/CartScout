@@ -46,7 +46,7 @@ function NavigationRoot() {
   return (
     <Stack
       screenOptions={{
-        headerTintColor: colors.systemBlue,
+        headerTintColor: colors.accent,
         headerTitleStyle: { fontWeight: '600' },
         headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: colors.background },

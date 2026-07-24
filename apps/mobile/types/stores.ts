@@ -22,4 +22,18 @@ export const FALLBACK_STORES: Store[] = [
     source: null,
     created_at: '',
   },
+  {
+    id: 3,
+    name: 'Kroger',
+    chain: 'Kroger',
+    source: null,
+    created_at: '',
+  },
+  {
+    id: 4,
+    name: 'Target',
+    chain: 'Target',
+    source: null,
+    created_at: '',
+  },
 ];

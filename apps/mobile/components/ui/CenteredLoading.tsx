@@ -14,7 +14,7 @@ export function CenteredLoading({ message, accessibilityLabel }: Props) {
       accessibilityRole="progressbar"
       style={styles.wrap}
     >
-      <ActivityIndicator color={colors.systemBlue} size="large" />
+      <ActivityIndicator color={colors.accent} size="large" />
       {message ? <Text style={styles.message}>{message}</Text> : null}
     </View>
   );
